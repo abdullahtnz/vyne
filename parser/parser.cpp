@@ -14,45 +14,51 @@ Token Parser::peekToken() {
 	return { TokenType::End, 0 };
 }
 
-double Parser::parseFactor() {
+std::unique_ptr<ASTNode> Parser::parseFactor() {
 	Token current = peekToken();
 
 	if (current.type == TokenType::Number) {
 		getNextToken();
-		return current.value;
-	}	
-
-	else if (current.type == TokenType::Left_Parenthese) {
-		getNextToken();
-		double result = parseExpression();
-		consume(TokenType::Right_Parenthese);
-		return result;
+		return std::make_unique<NumberNode>(current.value);
 	}
-	throw std::runtime_error("Expected a number or parenthesis");
+
+	if (current.type == TokenType::Identifier) {
+		getNextToken();
+		return std::make_unique<VariableNode>(current.name);
+	}
+
+	if (current.type == TokenType::Left_Parenthese) {
+		getNextToken();
+		auto node = parseExpression();
+		consume(TokenType::Right_Parenthese);
+		return node;
+	}
+	throw std::runtime_error("Expected number, identifier, or parenthesis");
 }
 
-double Parser::parseTerm() {
-	double left = parseFactor();
+std::unique_ptr<ASTNode> Parser::parseTerm() {
+	auto left = parseFactor();
 
 	while (peekToken().type == TokenType::Multiply || peekToken().type == TokenType::Division) {
-		Token op = getNextToken();
-		double right = parseFactor();
+		Token opToken = getNextToken();
+		char opChar = (opToken.type == TokenType::Multiply) ? '*' : '/';
 
-		if (op.type == TokenType::Multiply) left *= right;
-		else left /= right;
+		auto right = parseFactor();
+		left = std::make_unique<BinOpNode>(opChar, std::move(left), std::move(right));
 	}
 	return left;
 }
 
-double Parser::parseExpression() {
-	double left = parseTerm();
+std::unique_ptr<ASTNode> Parser::parseExpression() {
+	auto left = parseTerm();
 
 	while (peekToken().type == TokenType::Add || peekToken().type == TokenType::Substract) {
-		Token op = getNextToken();
-		double right = parseTerm();
+		Token opToken = getNextToken();
+		char opChar = (opToken.type == TokenType::Add) ? '+' : '-';
 
-		if (op.type == TokenType::Add) left += right;
-		else left -= right;
+		auto right = parseTerm();
+
+			left = std::make_unique<BinOpNode>(opChar, std::move(left), std::move(right));
 	}
 	return left;
 }

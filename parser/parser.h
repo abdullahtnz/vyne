@@ -3,8 +3,11 @@
 #include <vector>
 #include <string>
 #include <cctype>
+#include <memory>
+#include <map>
 
 #include "../lexer/lexer.h"
+#include "../ast/ast.h"
 
 class Parser {
 private:
@@ -15,8 +18,8 @@ public:
 
 	Token getNextToken();
 	Token peekToken();
-	double parseFactor();
-	double parseTerm();
-	double parseExpression();
+	std::unique_ptr<ASTNode> parseFactor();
+	std::unique_ptr<ASTNode> parseTerm();
+	std::unique_ptr<ASTNode> parseExpression();
 	void consume(TokenType expected);
 };

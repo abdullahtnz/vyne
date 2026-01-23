@@ -12,12 +12,14 @@ enum class TokenType {
 	Division,
 	Left_Parenthese,
 	Right_Parenthese,
+	Identifier,
 	End
 };
 
 struct Token {
 	TokenType type;
 	int value;
+	std::string name;
 };
 
 std::vector<Token> tokenize(const std::string& input);
