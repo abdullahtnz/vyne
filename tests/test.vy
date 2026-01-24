@@ -2,7 +2,7 @@ y = 100
 z = "Hello world"
 
 group Farhad {
-	z = "Hello world"
+	z   = 15
 	age = z
 }
 

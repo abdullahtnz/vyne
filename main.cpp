@@ -9,10 +9,9 @@
 
 int main(int argc, char* argv[]) {
 	SymbolContainer forest;
-	forest["default"] = {};
+	forest["global"] = {};
 	
-	forest["default"]["pi"] = 3.14159;
-	forest["default"]["x"] = 10.0;
+	forest["global"]["pi"] = 3.14159;
 
 	std::string input;
 
