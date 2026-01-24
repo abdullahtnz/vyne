@@ -8,7 +8,7 @@
 #include "ast/ast.h"
 
 int main(int argc, char* argv[]) {
-	SymbolForest forest;
+	SymbolContainer forest;
 	forest["default"] = {};
 	
 	forest["default"]["pi"] = 3.14159;

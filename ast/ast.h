@@ -36,14 +36,14 @@ struct Value {
     }
 };
 
-using SymbolTable = std::unordered_map<std::string, Value>;
-using SymbolForest = std::unordered_map<std::string, SymbolTable>;
+using SymbolTable  = std::unordered_map<std::string, Value>;
+using SymbolContainer = std::unordered_map<std::string, SymbolTable>;
 
 class ASTNode {
 public:
     int lineNumber = 0;
     virtual ~ASTNode() = default;
-    virtual Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const = 0;
+    virtual Value evaluate(SymbolContainer& forest, std::string currentGroup = "default") const = 0;
 };
 
 class GroupNode : public ASTNode {
@@ -54,14 +54,14 @@ public:
         : groupName(name), statements(std::move(stmts)) {
     }
 
-    Value evaluate(SymbolForest& forest, std::string currentGroup) const override;
+    Value evaluate(SymbolContainer& forest, std::string currentGroup) const override;
 };
 
 class NumberNode : public ASTNode {
     double value;
 public:
     NumberNode(double val) : value(val) {}
-    Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override;
+    Value evaluate(SymbolContainer& forest, std::string currentGroup = "default") const override;
 };
 
 class VariableNode : public ASTNode {
@@ -72,7 +72,7 @@ public:
         : name(name), specificGroup(group) {
     }
 
-    Value evaluate(SymbolForest& forest, std::string currentGroup) const override;
+    Value evaluate(SymbolContainer& forest, std::string currentGroup) const override;
 };
 
 class AssignmentNode : public ASTNode {
@@ -82,7 +82,7 @@ public:
     AssignmentNode(std::string id, std::unique_ptr<ASTNode> rhs_ptr)
         : identifier(id), rhs(std::move(rhs_ptr)) {
     }
-    Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override;
+    Value evaluate(SymbolContainer& forest, std::string currentGroup = "default") const override;
 };
 
 class BinOpNode : public ASTNode {
@@ -93,21 +93,21 @@ public:
     BinOpNode(char op, std::unique_ptr<ASTNode> l, std::unique_ptr<ASTNode> r)
         : op(op), left(std::move(l)), right(std::move(r)) {
     }
-    Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override;
+    Value evaluate(SymbolContainer& forest, std::string currentGroup = "default") const override;
 };
 
 class PrintNode : public ASTNode {
     std::unique_ptr<ASTNode> expression;
 public:
     PrintNode(std::unique_ptr<ASTNode> expr) : expression(std::move(expr)) {}
-    Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override;
+    Value evaluate(SymbolContainer& forest, std::string currentGroup = "default") const override;
 };
 
 class StringNode : public ASTNode {
     std::string text;
 public:
     StringNode(std::string t) : text(std::move(t)) {}
-    Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override {
+    Value evaluate(SymbolContainer& forest, std::string currentGroup = "default") const override {
         return Value(text);
     }
 };
@@ -116,5 +116,5 @@ class ArrayNode : public ASTNode {
     std::vector<std::unique_ptr<ASTNode>> elements;
 public:
     ArrayNode(std::vector<std::unique_ptr<ASTNode>> elm) : elements(std::move(elm)) {}
-    Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override;
+    Value evaluate(SymbolContainer& forest, std::string currentGroup = "default") const override;
 };

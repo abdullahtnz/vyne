@@ -1,11 +1,11 @@
 #include "ast.h"
 #include <stdexcept>
 
-Value NumberNode::evaluate(SymbolForest& env, std::string currentGroup) const {
+Value NumberNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     return Value(value);
 }
 
-Value VariableNode::evaluate(SymbolForest& forest, std::string currentGroup) const {
+Value VariableNode::evaluate(SymbolContainer& forest, std::string currentGroup) const {
     std::string targetGroup = specificGroup.empty() ? currentGroup : specificGroup;
 
     if (forest.count(targetGroup) && forest[targetGroup].count(name)) {
@@ -15,20 +15,20 @@ Value VariableNode::evaluate(SymbolForest& forest, std::string currentGroup) con
     throw std::runtime_error("Variable '" + name + "' not found in " + targetGroup);
 }
 
-Value AssignmentNode::evaluate(SymbolForest& env, std::string currentGroup) const {
+Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value val = rhs->evaluate(env, currentGroup);
     env[currentGroup][identifier] = val;
     return val;
 }
 
-Value GroupNode::evaluate(SymbolForest& forest, std::string currentGroup) const {
+Value GroupNode::evaluate(SymbolContainer& forest, std::string currentGroup) const {
     for (const auto& stmt : statements) {
         stmt->evaluate(forest, groupName);
     }
     return Value();
 }
 
-Value BinOpNode::evaluate(SymbolForest& env, std::string currentGroup) const {
+Value BinOpNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value l = left->evaluate(env, currentGroup);
     Value r = right->evaluate(env, currentGroup);
 
@@ -52,13 +52,13 @@ Value BinOpNode::evaluate(SymbolForest& env, std::string currentGroup) const {
     }
 }
 
-Value PrintNode::evaluate(SymbolForest& env, std::string currentGroup) const {
+Value PrintNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value val = expression->evaluate(env, currentGroup);
     val.print(std::cout);
     return val;
 }
 
-Value ArrayNode::evaluate(SymbolForest& env, std::string currentGroup) const {
+Value ArrayNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     std::vector<Value> results;
 
     for (const auto& node : elements){
