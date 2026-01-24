@@ -75,7 +75,7 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
 	return left;
 }
 
-// statement parser ucun nezerde tutulub, demo
+// statement parser ucun nezerde tutulub, if statementler elave olunacaq
 std::unique_ptr<ASTNode> Parser::parseStatement() {
 	Token current = peekToken();
 
