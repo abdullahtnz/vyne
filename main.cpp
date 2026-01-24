@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
 	forest["default"]["x"] = 10.0;
 
 	std::string input;
-	std::cout << "TF-Compiler Shell (Type 'exit' to quit)" << "\n";
 
 	if (argc > 1) {
 		std::string filename = argv[1];
@@ -53,6 +52,8 @@ int main(int argc, char* argv[]) {
 
 		return 0;
 	}
+
+		std::cout << "TF-Compiler Shell (Type 'exit' to quit)" << "\n";
 		while (true) {
 			std::cout << ">> ";
 			std::getline(std::cin, input);
