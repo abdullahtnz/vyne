@@ -50,7 +50,7 @@ class GroupNode : public ASTNode {
     std::string groupName;
     std::vector<std::unique_ptr<ASTNode>> statements;
 public:
-    GroupNode(std::string&& name, std::vector<std::unique_ptr<ASTNode>> stmts)
+    GroupNode(std::string name, std::vector<std::unique_ptr<ASTNode>> stmts)
         : groupName(name), statements(std::move(stmts)) {
     }
 
