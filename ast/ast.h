@@ -3,12 +3,14 @@
 #include <string>
 #include <memory>
 #include <map>
-#include <variant>
 
 struct Value {
 	bool isString = false;
 	double number = 0.0;
 	std::string text = "";
+
+	Value(std::string s) : isString(true), text(s), number(0.0) {}
+	Value() {}
 
 	Value& operator=(double d) {
 		isString = false;

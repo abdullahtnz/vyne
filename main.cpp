@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
 				auto root = parser.parseStatement();
 				if (root) {
 					Value result = root->evaluate(globals);
-					std::cout << result.number << std::endl;
+					result.print();
 				}
 			}
 			catch (const std::exception& e) {

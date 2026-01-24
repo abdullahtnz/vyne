@@ -35,7 +35,7 @@ std::vector<Token> tokenize(const std::string& input) {
 			}
 			--i;
 
-			if (buffer == "print") {
+			if (buffer == "log") {
 				tokens.emplace_back(TokenType::Print, 0, buffer);
 			}
 

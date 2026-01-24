@@ -37,8 +37,17 @@ Value BinOpNode::evaluate(SymbolTable& env) const {
     Value l = left->evaluate(env);
     Value r = right->evaluate(env);
 
-    if (r.isString || l.isString) {
-        throw std::runtime_error("Type Error: Cannot perform math on strings!");
+    if (l.isString && r.isString) {
+        if (op == '+') {
+            return Value(l.text + r.text);
+        }
+        else {
+            throw std::runtime_error("Type Error: You can only use '+' with strings.");
+        }
+    }
+
+    if (l.isString != r.isString) {
+        throw std::runtime_error("Type Error: Cannot mix strings and numbers in math!");
     }
 
     Value result;
