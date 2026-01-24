@@ -54,7 +54,6 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 		return node;
 	}
 
-	
 	if(current.type == TokenType::Left_CB){
 		consume(TokenType::Left_CB);
 
@@ -114,6 +113,7 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 		auto expr = parseExpression();
 
 		consume(TokenType::Right_Parenthese);
+		consume(TokenType::Semicolon);
 		return std::make_unique<PrintNode>(std::move(expr));
 	}
 
@@ -132,6 +132,7 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 		}
 
 		consume(TokenType::Right_CB);
+		consume(TokenType::Semicolon);
 
 		return std::make_unique<GroupNode>(treeName, std::move(statements));
 	}
@@ -142,6 +143,7 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 		consume(TokenType::Equals);
 
 		auto rhs = parseExpression();
+		consume(TokenType::Semicolon);
 		return std::make_unique<AssignmentNode>(name, std::move(rhs));
 	}
 

@@ -22,6 +22,7 @@ enum class TokenType {
 	Left_Bracket,
 	Right_Bracket,
 	Comma,
+	Semicolon,
 	End
 };
 

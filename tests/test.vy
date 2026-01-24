@@ -1,9 +1,10 @@
-y = 100
-z = "Hello world"
+y = 100;
+z = "Hello world";
 
-group Farhad {
-	z   = 15
-	age = z
-}
+group Intelligent {
+	partner = "Gratefulness";
+	IQ_level = 89;
+	dih = false;
+};
 
-log(Farhad[age])
+log(Intelligent[dih]);

@@ -28,9 +28,9 @@ std::vector<Token> tokenize(const std::string& input) {
 			tokens.emplace_back(TokenType::Number, std::stod(buffer));
 		}
 
-		else if (std::isalpha(character)) {
+		else if (std::isalpha(character) || character == '_') {
 			std::string buffer;
-			while (i < input.length() && std::isalnum(input[i])) {
+			while ((i < input.length() && std::isalnum(input[i])) || input[i] == '_' ) {
 				buffer += input[i++];
 			}
 			--i;
@@ -41,6 +41,14 @@ std::vector<Token> tokenize(const std::string& input) {
 
 			else if (buffer == "group") {
 				tokens.emplace_back(TokenType::Group, 0, "");
+			}
+
+			else if (buffer == "true"){
+				tokens.emplace_back(TokenType::Number, 1, "");
+			}
+
+			else if (buffer == "false"){
+				tokens.emplace_back(TokenType::Number, 0, "");
 			}
 
 			else {
@@ -62,6 +70,7 @@ std::vector<Token> tokenize(const std::string& input) {
 			case '[' : tokens.emplace_back(TokenType::Left_Bracket, 0, ""); break;
 			case ']' : tokens.emplace_back(TokenType::Right_Bracket, 0, ""); break;
 			case ',' : tokens.emplace_back(TokenType::Comma, 0, ""); break;
+			case ';' : tokens.emplace_back(TokenType::Semicolon, 0, ""); break;
 			default:
 				std::cerr << "Unexpected character: " << character << std::endl;
 				break;
@@ -92,7 +101,8 @@ std::string tokenTypeToString(TokenType type) {
         case TokenType::Left_Bracket:     return "'['";
         case TokenType::Right_Bracket:    return "']'";
         case TokenType::Comma:            return "','";
-        case TokenType::End:              return "End of File";
+		case TokenType::Semicolon:        return "';'";
+        case TokenType::End:              return "end of file";
         default:                          return "Unknown Token";
     }
 }
