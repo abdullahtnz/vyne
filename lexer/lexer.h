@@ -21,6 +21,7 @@ enum class TokenType {
 	Right_CB,
 	Left_Bracket,
 	Right_Bracket,
+	Comma,
 	End
 };
 

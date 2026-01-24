@@ -50,17 +50,18 @@ std::vector<Token> tokenize(const std::string& input) {
 
 		else {
 			switch (character) {
-			case '+': tokens.emplace_back(TokenType::Add, 0, ""); break;
-			case '-': tokens.emplace_back(TokenType::Substract, 0, ""); break;
-			case '*': tokens.emplace_back(TokenType::Multiply, 0, ""); break;
-			case '/': tokens.emplace_back(TokenType::Division, 0, ""); break;
-			case '(': tokens.emplace_back(TokenType::Left_Parenthese, 0, ""); break;
-			case ')': tokens.emplace_back(TokenType::Right_Parenthese, 0, ""); break;
-			case '=': tokens.emplace_back(TokenType::Equals, 0, ""); break;
-			case '{': tokens.emplace_back(TokenType::Left_CB, 0, ""); break;
-			case '}': tokens.emplace_back(TokenType::Right_CB, 0, ""); break;
-			case '[': tokens.emplace_back(TokenType::Left_Bracket, 0, ""); break;
-			case ']': tokens.emplace_back(TokenType::Right_Bracket, 0, ""); break;
+			case '+' : tokens.emplace_back(TokenType::Add, 0, ""); break;
+			case '-' : tokens.emplace_back(TokenType::Substract, 0, ""); break;
+			case '*' : tokens.emplace_back(TokenType::Multiply, 0, ""); break;
+			case '/' : tokens.emplace_back(TokenType::Division, 0, ""); break;
+			case '(' : tokens.emplace_back(TokenType::Left_Parenthese, 0, ""); break;
+			case ')' : tokens.emplace_back(TokenType::Right_Parenthese, 0, ""); break;
+			case '=' : tokens.emplace_back(TokenType::Equals, 0, ""); break;
+			case '{' : tokens.emplace_back(TokenType::Left_CB, 0, ""); break;
+			case '}' : tokens.emplace_back(TokenType::Right_CB, 0, ""); break;
+			case '[' : tokens.emplace_back(TokenType::Left_Bracket, 0, ""); break;
+			case ']' : tokens.emplace_back(TokenType::Right_Bracket, 0, ""); break;
+			case ',' : tokens.emplace_back(TokenType::Comma, 0, ""); break;
 			default:
 				std::cerr << "Unexpected character: " << character << std::endl;
 				break;

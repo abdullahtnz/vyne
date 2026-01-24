@@ -64,27 +64,20 @@ int main(int argc, char* argv[]) {
 			// debug commands
 			if (input == "view tree") {
 				std::cout << "--- Current Symbol Forest ---" << "\n";
-
 				bool hasAnyVariables = false;
 
 				for (const auto& [groupName, table] : forest) {
-
 					for (const auto& [varName, val] : table) {
 						hasAnyVariables = true;
-
+						
 						if (groupName == "default") {
 							std::cout << varName << " = ";
-						}
-						else {
+						} else {
 							std::cout << groupName << "[" << varName << "] = ";
 						}
 
-						if (val.isString) {
-							std::cout << "\"" << val.text << "\"" << "\n";
-						}
-						else {
-							std::cout << val.number << "\n";
-						}
+						val.print(std::cout);
+						std::cout << "\n";
 					}
 				}
 
@@ -103,7 +96,7 @@ int main(int argc, char* argv[]) {
 				auto root = parser.parseStatement();
 				if (root) {
 					Value result = root->evaluate(forest);
-					result.print();
+					result.print(std::cout);
 				}
 			}
 			catch (const std::exception& e) {

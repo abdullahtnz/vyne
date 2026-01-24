@@ -7,11 +7,14 @@
 
 struct Value {
     bool isString = false;
+    bool isArray = false;
     double number = 0.0;
     std::string text = "";
+    std::vector<Value> list;
 
     Value(std::string s) : isString(true), text(s), number(0.0) {}
-    Value(double d) : isString(false), number(d), text("") {} // Added for convenience
+    Value(double d) : isString(false), number(d), text("") {}
+    Value(std::vector<Value> l) : isArray(true), list(std::move(l)) {}
     Value() {}
 
     Value& operator=(double d) {
@@ -26,9 +29,19 @@ struct Value {
         return *this;
     }
 
-    void print() const {
-        if (isString) std::cout << text << "\n";
-        else std::cout << number << "\n";
+    void print(std::ostream& os) const {
+        if (isArray) {
+            os << "{";
+            for (size_t i = 0; i < list.size(); ++i) {
+                list[i].print(os);
+                if (i < list.size() - 1) os << ", ";
+            }
+            os << "}";
+        } else if (isString) {
+            os << "\"" << text << "\"";
+        } else {
+            os << number;
+        }
     }
 };
 
@@ -37,9 +50,8 @@ using SymbolForest = std::unordered_map<std::string, SymbolTable>;
 
 class ASTNode {
 public:
-    int lineNumber = 0; // Highly recommended for those errors!
+    int lineNumber = 0;
     virtual ~ASTNode() = default;
-    // Every subclass MUST use this exact signature
     virtual Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const = 0;
 };
 
@@ -107,4 +119,11 @@ public:
     Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override {
         return Value(text);
     }
+};
+
+class ArrayNode : public ASTNode {
+    std::vector<std::unique_ptr<ASTNode>> elements;
+public:
+    ArrayNode(std::vector<std::unique_ptr<ASTNode>> elm) : elements(std::move(elm)) {}
+    Value evaluate(SymbolForest& forest, std::string currentGroup = "default") const override;
 };

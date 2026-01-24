@@ -53,6 +53,25 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 		consume(TokenType::Right_Parenthese);
 		return node;
 	}
+
+	
+	if(current.type == TokenType::Left_CB){
+		consume(TokenType::Left_CB);
+
+		std::vector<std::unique_ptr<ASTNode>> elements;
+
+		if(peekToken().type != TokenType::Right_CB){
+			elements.emplace_back(parseExpression());
+
+			while(peekToken().type == TokenType::Comma){
+				consume(TokenType::Comma);
+				elements.emplace_back(parseExpression());
+			}
+		}
+
+		consume(TokenType::Right_CB);
+		return std::make_unique<ArrayNode>(std::move(elements));
+	}
 	throw std::runtime_error("Expected number, identifier, or parenthesis");
 }
 

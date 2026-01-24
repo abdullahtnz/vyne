@@ -54,6 +54,16 @@ Value BinOpNode::evaluate(SymbolForest& env, std::string currentGroup) const {
 
 Value PrintNode::evaluate(SymbolForest& env, std::string currentGroup) const {
     Value val = expression->evaluate(env, currentGroup);
-    val.print();
+    val.print(std::cout);
     return val;
+}
+
+Value ArrayNode::evaluate(SymbolForest& env, std::string currentGroup) const {
+    std::vector<Value> results;
+
+    for (const auto& node : elements){
+        results.emplace_back(node->evaluate(env, currentGroup));
+    }
+
+    return Value(results);
 }
