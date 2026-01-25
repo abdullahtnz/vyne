@@ -133,3 +133,15 @@ public:
     ArrayNode(std::vector<std::unique_ptr<ASTNode>> elm) : elements(std::move(elm)) {}
     Value evaluate(SymbolContainer& forest, std::string currentGroup = "global") const override;
 };
+
+class IndexAccessNode : public ASTNode {
+    std::string name;
+    std::vector<std::string> scope;
+    std::unique_ptr<ASTNode> index;
+
+public :
+    IndexAccessNode(std::string n, std::vector<std::string> s, std::unique_ptr<ASTNode> idx)
+        : name(std::move(n)), scope(std::move(s)), index(std::move(idx)) {}
+
+    Value evaluate(SymbolContainer& forest, std::string currentGroup) const override;
+};

@@ -5,7 +5,7 @@ Value NumberNode::evaluate(SymbolContainer& env, std::string currentGroup) const
     return Value(value);
 }
 
-Value VariableNode::evaluate(SymbolContainer& forest, std::string currentGroup) const {
+Value VariableNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     std::string targetGroup;
     
     if (specificGroup.empty()) {
@@ -17,8 +17,8 @@ Value VariableNode::evaluate(SymbolContainer& forest, std::string currentGroup) 
         }
     }
 
-    if (forest.count(targetGroup) && forest[targetGroup].count(name)) {
-        return forest[targetGroup][name];
+    if (env.count(targetGroup) && env[targetGroup].count(name)) {
+        return env[targetGroup][name];
     }
 
     throw std::runtime_error("Variable '" + name + "' not found in " + targetGroup);
@@ -45,16 +45,15 @@ Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
     }
 
-    // 4. Save the value into the correct "tree" in the forest
     env[targetGroup][identifier] = val; 
     return val;
 }
 
-Value GroupNode::evaluate(SymbolContainer& forest, std::string currentGroup) const {
+Value GroupNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     std::string nextGroup = currentGroup + "." + groupName;
     
     for (const auto& stmt : statements) {
-        stmt->evaluate(forest, nextGroup);
+        stmt->evaluate(env, nextGroup);
     }
     return Value();
 }
@@ -99,4 +98,49 @@ Value ArrayNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
     }
 
     return Value(results);
+}
+
+Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
+    std::string targetGroup;
+
+    if (scope.empty()) {
+        targetGroup = currentGroup;
+    } else {
+        targetGroup = scope[0];
+        for (size_t i = 1; i < scope.size(); ++i) {
+            targetGroup += "." + scope[i];
+        }
+
+        if (currentGroup == "global" && env.find(targetGroup) == env.end()) {
+            std::string globalPath = "global." + targetGroup;
+            if (env.find(globalPath) != env.end()) {
+                targetGroup = globalPath;
+            }
+        }
+    }
+
+
+    if (!env.count(targetGroup) || !env[targetGroup].count(name)) {
+        throw std::runtime_error("Array '" + name + "' not found.");
+    }
+
+    Value& arrayVal = env[targetGroup][name];
+
+    if (arrayVal.type != Value::ARRAY) {
+        throw std::runtime_error("Type Error: '" + name + "' is not an array.");
+    }
+
+    Value idxVal = index->evaluate(env, currentGroup);
+    
+    if (idxVal.type != Value::NUMBER) {
+        throw std::runtime_error("Index must be a number.");
+    }
+
+    int i = static_cast<int>(idxVal.number);
+
+    if (i < 0 || i >= static_cast<int>(arrayVal.list.size())) {
+        throw std::runtime_error("Index out of bounds: " + std::to_string(i));
+    }
+
+    return arrayVal.list[i]; 
 }

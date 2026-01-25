@@ -3,9 +3,9 @@
 #include <fstream>
 #include <sstream>
 
-#include "lexer/lexer.h"
-#include "parser/parser.h"
-#include "ast/ast.h"
+#include "vyne/lexer/lexer.h"
+#include "vyne/parser/parser.h"
+#include "vyne/ast/ast.h"
 
 int main(int argc, char* argv[]) {
 	SymbolContainer forest;
