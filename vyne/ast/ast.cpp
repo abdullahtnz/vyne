@@ -134,6 +134,11 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         std::string targetGroup = resolvePath(var->getScope(), currentGroup);
         Value& target = env[targetGroup][var->getName()];
 
+        /*
+            Array methods are implemented from here
+            Current available methods : size, push, pop, delete, sort
+        */
+       
         if(methodName == "size"){
             if(target.type != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array!");
 
