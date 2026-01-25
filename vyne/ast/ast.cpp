@@ -187,14 +187,6 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 
             return Value(true); 
         }
-    } else {
-        Value temp = receiver->evaluate(env, currentGroup);
-        if (methodName == "size") {
-            if (temp.type != Value::ARRAY) throw std::runtime_error("size() called on non-array.");
-            return Value(static_cast<double>(temp.list.size()));
-        }
-
-        throw std::runtime_error("Cannot modify a literal array!");
     }
     
     throw std::runtime_error("Unknown method: " + methodName);
