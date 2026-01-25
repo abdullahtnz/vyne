@@ -1,6 +1,5 @@
-group Node {
-    x = {1,2,3};
-};
+x = {1, 2, 5, 7, 3, 6, 5};
 
-Node.x.pop();
-log(Node.x);
+x.delete(5);
+
+log(x);

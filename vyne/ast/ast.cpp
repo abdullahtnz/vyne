@@ -1,5 +1,4 @@
 #include "ast.h"
-#include <stdexcept>
 
 Value NumberNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     return Value(value);
@@ -136,13 +135,13 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         Value& target = env[targetGroup][var->getName()];
 
         if(methodName == "size"){
-            if(target.type != Value::ARRAY) throw std::runtime_error("Compilation error : Called method size() on non-array!");
+            if(target.type != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array!");
 
             return Value(static_cast<double>(target.list.size()));
         }
 
         if (methodName == "push"){
-            if(target.type != Value::ARRAY) throw std::runtime_error("Compilation error : Called method push() on non-array!");
+            if(target.type != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array!");
 
             Value val = arguments[0]->evaluate(env, currentGroup);
             target.list.emplace_back(val);
@@ -150,7 +149,7 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if(methodName == "pop"){
-            if(target.type != Value::ARRAY) throw std::runtime_error("Compilation error : Called method pop() on non-array!");
+            if(target.type != Value::ARRAY) throw std::runtime_error("Type Error : Called method pop() on non-array!");
             if(target.list.empty()) throw std::runtime_error("Index Error: pop() from empty array.");
             if(!arguments.empty()) throw std::runtime_error("Argument Error: pop() expects 0 arguments, but got " + std::to_string(arguments.size()) + ".");
 
@@ -158,7 +157,22 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
             
             target.list.pop_back();
 
-            return lastValue;
+            return Value(true);
+        }
+
+        if(methodName == "delete"){
+            if(target.type != Value::ARRAY) throw std::runtime_error("Type Error : Called method delete() on non-array!");
+            if(arguments.size() != 1) throw std::runtime_error("Argument Error: delete() expects exactly 1 argument, but got " + std::to_string(arguments.size()) + " instead.");
+
+            Value val = arguments[0]->evaluate(env, currentGroup);
+
+            auto it = std::find(target.list.begin(), target.list.end(), val);
+
+            if (it == std::end(target.list)) throw std::runtime_error("Value error : Could not find given value in array!");
+
+            target.list.erase(it);
+
+            return Value(true);
         }
     } else {
         Value temp = receiver->evaluate(env, currentGroup);

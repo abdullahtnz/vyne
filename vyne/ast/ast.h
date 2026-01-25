@@ -4,6 +4,8 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
+#include <stdexcept>
 
 struct Value {
     enum Type { NUMBER, STRING, ARRAY, TABLE, NONE, BOOLEAN };
@@ -21,6 +23,16 @@ struct Value {
     Value(bool b) : type(BOOLEAN), boolean(std::move(b)) {}
     Value(std::vector<Value> l) : type(ARRAY), list(std::move(l)) {}
     Value(std::unordered_map<std::string, Value> t) : type(TABLE), table(std::move(t)) {}
+
+    bool operator==(const Value& other) const {
+        if (type != other.type) return false;
+        if (type == NUMBER) return number == other.number;
+        if (type == STRING) return text == other.text;
+        if (type == BOOLEAN) return boolean == other.boolean;
+        if (type == NONE) return true;
+        
+        return false; 
+    }
 
     void print(std::ostream& os) const {
     if (type == Type::ARRAY) {
