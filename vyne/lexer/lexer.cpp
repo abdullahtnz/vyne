@@ -29,38 +29,39 @@ std::vector<Token> tokenize(const std::string& input) {
 		}
 
 		else if (std::isalpha(character) || character == '_') {
-			std::string buffer;
+			size_t start = i;
 			while ((i < input.length() && std::isalnum(input[i])) || input[i] == '_' ) {
-				buffer += input[i++];
+				i++;
 			}
+			std::string_view view = std::string_view(input).substr(start, i - start);
 			--i;
 
-			if (buffer == "log") {
-				tokens.emplace_back(TokenType::Print, 0, buffer);
+			if (view == "log") {
+				tokens.emplace_back(TokenType::Print, 0, view);
 			}
 
-			if (buffer == "sizeof") {
-				tokens.emplace_back(TokenType::Sizeof, 0, buffer);
+			if (view == "sizeof") {
+				tokens.emplace_back(TokenType::Sizeof, 0, view);
 			}
 
-			else if (buffer == "group") {
+			else if (view == "group") {
 				tokens.emplace_back(TokenType::Group, 0, "");
 			}
 
-			else if (buffer == "true"){
+			else if (view == "true"){
 				tokens.emplace_back(TokenType::Number, 1, "");
 			}
 
-			else if (buffer == "false"){
+			else if (view == "false"){
 				tokens.emplace_back(TokenType::Number, 0, "");
 			}
 
-			else if (buffer == "null"){
+			else if (view == "null"){
 				tokens.emplace_back(TokenType::Number, 0, "");
 			}
 
 			else {
-				tokens.emplace_back(TokenType::Identifier, 0, buffer);
+				tokens.emplace_back(TokenType::Identifier, 0, view);
 			}
 		}
 

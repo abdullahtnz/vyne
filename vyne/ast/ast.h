@@ -104,10 +104,10 @@ public:
 };
 
 class VariableNode : public ASTNode {
-    std::string name;
+    std::string_view name;
     std::vector<std::string> specificGroup;
 public:
-    VariableNode(std::string name, std::vector<std::string>&& group = {})
+    VariableNode(std::string_view name, std::vector<std::string>&& group = {})
         : name(std::move(name)), specificGroup(std::move(group)) {
     }
 
@@ -115,7 +115,7 @@ public:
 
     // getters
     const std::vector<std::string>& getScope() { return specificGroup; }
-    const std::string& getName()  { return name; }
+    const std::string_view& getName()  { return name; }
 };
 
 class AssignmentNode : public ASTNode {

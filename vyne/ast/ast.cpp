@@ -16,11 +16,13 @@ Value VariableNode::evaluate(SymbolContainer& env, std::string currentGroup) con
         }
     }
 
-    if (env.count(targetGroup) && env[targetGroup].count(name)) {
-        return env[targetGroup][name];
+    std::string nameStr(name); 
+
+    if (env.count(targetGroup) && env[targetGroup].count(nameStr)) {
+        return env[targetGroup][nameStr];
     }
 
-    throw std::runtime_error("Variable '" + name + "' not found in " + targetGroup);
+    throw std::runtime_error("Variable '" + std::string(name) + "' not found in " + targetGroup);
 }
 
 Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
@@ -148,7 +150,8 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 
     if(var){
         std::string targetGroup = resolvePath(var->getScope(), currentGroup);
-        Value& target = env[targetGroup][var->getName()];
+        std::string varName(var->getName());
+        Value& target = env[targetGroup][varName];
 
         /*
             Array methods are implemented from here
