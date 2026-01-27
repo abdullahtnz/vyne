@@ -1,11 +1,6 @@
-group Boys {
-    list = {"dog","cat"};
-};
-
-Boys.list.push("bat");
-
-sub func(a, b){
-    x = a + b;
+sub area(r){
+    x = pi * r * r;
 }
 
-log(func(5,2));
+area = area(5);
+log(area);

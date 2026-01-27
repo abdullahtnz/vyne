@@ -146,14 +146,14 @@ Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) 
 
 Value FunctionNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value funcValue(parameters, body);
-    
-    env[currentGroup][this->name] = funcValue; 
+    const std::string& functionName = "sub_" + this->name;
+    env[currentGroup][functionName] = funcValue; 
 
     return funcValue; 
 }
 
 Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    Value funcVal = env["global"][funcName];
+    Value funcVal = env["global"]["sub_" + funcName];
 
     if(funcVal.type != Value::FUNCTION) throw std::runtime_error("Type Error : " + funcName + " is not a function.");
 
