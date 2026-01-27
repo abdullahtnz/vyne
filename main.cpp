@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 
 #include "vyne/lexer/lexer.h"
 #include "vyne/parser/parser.h"
@@ -46,6 +47,7 @@ int main(int argc, char* argv[]) {
 		Parser parser(tokens);
 		
 		try {
+			auto start = std::chrono::high_resolution_clock::now();
 			while (parser.peekToken().type != TokenType::End) {
 				auto ast = parser.parseStatement();
 				if (ast) {
@@ -56,6 +58,9 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			}
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double, std::milli> ms = end - start;
+			std::cout << "\n\nExecution finished in: " << ms.count() << "ms";
 		} catch (const std::exception& e) {
 			std::cerr << "Compilation Error: " << e.what() << "\n";
 		}
