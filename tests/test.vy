@@ -5,4 +5,4 @@ sub area(r){
 }
 
 area = area(5);
-log(area);
+log(sizeof(area));

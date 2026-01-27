@@ -149,7 +149,7 @@ Value FunctionNode::evaluate(SymbolContainer& env, std::string currentGroup) con
     const std::string& functionName = "sub@" + this->name;
     env[currentGroup][functionName] = funcValue; 
 
-    return funcValue; 
+    return funcValue;
 }
 
 Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
