@@ -145,6 +145,10 @@ Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) 
     return arrayVal.list[i]; 
 }
 
+Value FunctionNode::evaluate(SymbolContainer& forest, std::string currentGroup) const {
+        return Value(parameters, body); 
+}
+
 Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     VariableNode* var = dynamic_cast<VariableNode*>(receiver.get());
 

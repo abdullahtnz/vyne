@@ -20,6 +20,7 @@ enum class TokenType {
 	Sizeof,
 	String,
 	Group,
+	Function,
 	Left_CB,
 	Right_CB,
 	Left_Bracket,
@@ -35,7 +36,7 @@ enum class TokenType {
 
 struct Token {
 	TokenType type;
-	int value;
+	double value;
 	std::string name;
 
 	Token(TokenType t, double v = 0.0, std::string n = "")

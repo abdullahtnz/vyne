@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 struct Value {
-    enum Type { NUMBER, STRING, ARRAY, TABLE, NONE };
+    enum Type { NUMBER, STRING, ARRAY, TABLE, FUNCTION, NONE };
     Type type = NONE;
 
     double number = 0;
@@ -16,11 +16,24 @@ struct Value {
     std::vector<Value> list;
     std::unordered_map<std::string, Value> table;
 
+    struct FunctionData {
+        std::vector<std::string> params;
+        std::vector<std::shared_ptr<ASTNode>> body; 
+    };
+
+    std::shared_ptr<FunctionData> function;
+
     Value() : type(NONE) {}
     Value(double n) : type(NUMBER), number(n) {}
     Value(std::string s) : type(STRING), text(std::move(s)) {}
     Value(std::vector<Value> l) : type(ARRAY), list(std::move(l)) {}
     Value(std::unordered_map<std::string, Value> t) : type(TABLE), table(std::move(t)) {}
+    Value(std::vector<std::string> p, std::vector<std::shared_ptr<ASTNode>> b) 
+        : type(FUNCTION), number(0) {
+        function = std::make_shared<FunctionData>();
+        function->params = std::move(p);
+        function->body = std::move(b);
+    }
 
     bool operator==(const Value& other) const {
         if (type != other.type) return false;
@@ -189,6 +202,18 @@ class IndexAccessNode : public ASTNode {
 public :
     IndexAccessNode(std::string n, std::vector<std::string> s, std::unique_ptr<ASTNode> idx)
         : name(std::move(n)), scope(std::move(s)), index(std::move(idx)) {}
+
+    Value evaluate(SymbolContainer& forest, std::string currentGroup) const override;
+};
+
+class FunctionNode : public ASTNode {
+    std::vector<std::string> parameters;
+    std::vector<std::shared_ptr<ASTNode>> body;
+
+public:
+    FunctionNode(std::vector<std::string> params, 
+                 std::vector<std::shared_ptr<ASTNode>> body)
+        : parameters(std::move(params)), body(std::move(body)) {}
 
     Value evaluate(SymbolContainer& forest, std::string currentGroup) const override;
 };

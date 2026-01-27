@@ -128,6 +128,35 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 		consume(TokenType::Right_CB);
 		return std::make_unique<ArrayNode>(std::move(elements));
 	}
+
+	// parse functions
+		if(current.type == TokenType::Function){
+		consume(TokenType::Function);
+		std::string funcName = consume(TokenType::Identifier).name;
+
+		// parser design for params
+		consume(TokenType::Left_Parenthese);
+		std::vector<std::string> params;
+		if(peekToken().type != TokenType::Right_Parenthese){
+			params.emplace_back(consume(TokenType::Identifier).name);
+			while (peekToken().type == TokenType::Comma) {
+				consume(TokenType::Comma);
+				params.push_back(consume(TokenType::Identifier).name);
+			}
+		}
+		consume(TokenType::Right_Parenthese);
+
+		// parser design for bodies
+		consume(TokenType::Left_CB);
+		std::vector<std::shared_ptr<ASTNode>> body;
+		while(peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End){
+			body.emplace_back(parseStatement());
+		}
+		consume(TokenType::Right_CB);
+
+		return std::make_unique<FunctionNode>(std::move(params), std::move(body));
+	}
+
 	throw std::runtime_error("Expected number, identifier, or parenthesis");
 }
 

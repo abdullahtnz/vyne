@@ -53,6 +53,9 @@ std::vector<Token> tokenize(const std::string& input) {
 			else if (buffer == "null") {
 				tokens.emplace_back(TokenType::Number, 0, "");
 			}
+			else if (buffer == "sub") {
+				tokens.emplace_back(TokenType::Function, 0, buffer);
+			}
 			else {
 				tokens.emplace_back(TokenType::Identifier, 0, buffer);
 			}
