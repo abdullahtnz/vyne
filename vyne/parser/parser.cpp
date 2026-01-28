@@ -8,50 +8,59 @@
 #define BOLD    "\033[1m"
 
 Token Parser::getNextToken() {
-	if (pos < tokens.size()) {
-		return tokens[pos++];
-	}
-	return { TokenType::End, 0 };
+    if (pos < tokens.size()) {
+        return tokens[pos++];
+    }
+    return Token(TokenType::End, 0, 0, "");
 }
 
 Token Parser::peekToken() {
-	if (pos < tokens.size()) {
-		return tokens[pos];
-	}
-	return { TokenType::End, 0 };
+    if (pos < tokens.size()) {
+        return tokens[pos];
+    }
+    return Token(TokenType::End, 0, 0, "");
 }
 
 Token Parser::lookAhead(int distance) {
-	if (pos + distance < tokens.size()) {
-		return tokens[pos + distance];
-	}
-	return { TokenType::End, 0, "" };
+    if (pos + distance < tokens.size()) {
+        return tokens[pos + distance];
+    }
+    return Token(TokenType::End, 0, 0, "");
 }
 
 std::unique_ptr<ASTNode> Parser::parseFactor() {
 	Token current = peekToken();
+	int line = current.line;
 
 	// PARSE STRINGS
 	if (current.type == TokenType::String) {
-		getNextToken();
-		return std::make_unique<StringNode>(current.name);
+		consume(TokenType::String);
+		auto node = std::make_unique<StringNode>(current.name);
+        node->lineNumber = line;
+        return node;
 	}
 
 	// PARSE NUMBERS
 	if (current.type == TokenType::Number) {
-		getNextToken();
-		return std::make_unique<NumberNode>(current.value);
+		consume(TokenType::Number);
+		auto node = std::make_unique<NumberNode>(current.value);
+        node->lineNumber = line;
+        return node;
 	}
 
 	// PARSE BOOLEANS
 	if (current.type == TokenType::True) {
 		consume(TokenType::True);
-		return std::make_unique<BooleanNode>(true);
+		auto node = std::make_unique<BooleanNode>(true);
+        node->lineNumber = line;
+        return node;
 	}
 
 	if (current.type == TokenType::False) {
 		consume(TokenType::False);
-		return std::make_unique<BooleanNode>(false);
+		auto node = std::make_unique<BooleanNode>(false);
+        node->lineNumber = line;
+        return node;
 	}
 
 	// PARSE IDENTIFIERS
@@ -64,6 +73,7 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 		std::vector<std::string> scope;
 		Token tok = consume(TokenType::Identifier);
 		std::unique_ptr<ASTNode> node = std::make_unique<VariableNode>(tok.name);
+		node->lineNumber = line;
 		std::string lastName = tok.name;
 
 		if (peekToken().type == TokenType::Left_Parenthese) {
@@ -109,6 +119,7 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 				node = std::make_unique<IndexAccessNode>(std::move(lastName), std::move(scope), std::move(indexExpr));
 			}
 		}
+		node->lineNumber = line;
 		return node;
 	}
 
@@ -134,7 +145,9 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 		}
 
 		consume(TokenType::Right_Bracket);
-		return std::make_unique<ArrayNode>(std::move(elements));
+		auto node = std::make_unique<ArrayNode>(std::move(elements));
+		node->lineNumber = line;
+		return node;
 	}
 
 	// parse functions
@@ -162,7 +175,9 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 		}
 		consume(TokenType::Right_CB);
 
-		return std::make_unique<FunctionNode>(std::move(funcName),std::move(params), std::move(body));
+		auto node = std::make_unique<FunctionNode>(std::move(funcName),std::move(params), std::move(body));
+		node->lineNumber = line;
+		return node;
 	}
 
 	// for built-in functions
@@ -183,7 +198,9 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 
 		consume(TokenType::Right_Parenthese);
 		
-		return std::make_unique<BuiltInCallNode>(name, std::move(args));
+		auto node = std::make_unique<BuiltInCallNode>(name, std::move(args));
+		node->lineNumber = line;
+		return node;
 	}
 
 	throw std::runtime_error("Expected number, identifier, or parenthesis");
@@ -194,10 +211,12 @@ std::unique_ptr<ASTNode> Parser::parseTerm() {
 
 	while (peekToken().type == TokenType::Multiply || peekToken().type == TokenType::Division) {
 		Token opToken = getNextToken();
-		TokenType opChar = (opToken.type == TokenType::Multiply) ? TokenType::Multiply : TokenType::Smaller;
+		TokenType opChar = (opToken.type == TokenType::Multiply) ? TokenType::Multiply : TokenType::Division;
 
 		auto right = parseFactor();
-		left = std::make_unique<BinOpNode>(opChar, std::move(left), std::move(right));
+		auto node = std::make_unique<BinOpNode>(opToken.type, std::move(left), std::move(right));
+		node->lineNumber = opToken.line; // <--- Add this
+		left = std::move(node);
 	}
 	return left;
 }
@@ -238,7 +257,9 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
 
 		auto right = parseTerm();
 
-		left = std::make_unique<BinOpNode>(opChar, std::move(left), std::move(right));
+		auto node = std::make_unique<BinOpNode>(opToken.type, std::move(left), std::move(right));
+        node->lineNumber = opToken.line;
+        left = std::move(node);
 	}
 	return left;
 }
@@ -246,6 +267,7 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
 // statement parser ucun nezerde tutulub, if statementler elave olunacaq
 std::unique_ptr<ASTNode> Parser::parseStatement() {
 	Token current = peekToken();
+	int line = current.line;
 
 	if (current.type == TokenType::Left_CB) {
         consume(TokenType::Left_CB);
@@ -256,7 +278,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         }
         
         consume(TokenType::Right_CB);
-        return std::make_unique<BlockNode>(std::move(statements));
+        auto node = std::make_unique<BlockNode>(std::move(statements));
+		node->lineNumber = line;
+		return node;
     }
 
 	// return keyword
@@ -264,7 +288,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         consume(TokenType::Return);
         auto expr = parseExpression();
         consume(TokenType::Semicolon);
-        return std::make_unique<ReturnNode>(std::move(expr));
+        auto node = std::make_unique<ReturnNode>(std::move(expr));
+		node->lineNumber = line;
+		return node;
     }
 
 	// assignment with scope, thanks to ferhad
@@ -291,7 +317,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 			auto rhs = parseExpression();
 			consumeSemicolon();
 
-			return std::make_unique<AssignmentNode>(varName, std::move(rhs), path);
+			auto node = std::make_unique<AssignmentNode>(varName, std::move(rhs), path);
+			node->lineNumber = line;
+			return node;
 		}
 	}
 
@@ -312,7 +340,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 		consume(TokenType::Right_CB);
 		consumeSemicolon();
 
-		return std::make_unique<GroupNode>(treeName, std::move(statements));
+		auto node = std::make_unique<GroupNode>(treeName, std::move(statements));
+		node->lineNumber = line;
+		return node;
 	}
 
 	if (current.type == TokenType::While) {
@@ -322,7 +352,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 		consume(TokenType::Right_Parenthese);
 
 		auto body = parseStatement();
-		return std::make_unique<WhileNode>(std::move(condition), std::move(body));
+		auto node = std::make_unique<WhileNode>(std::move(condition), std::move(body));
+		node->lineNumber = line;
+		return node;
 	}
 
 	auto expr = parseExpression();

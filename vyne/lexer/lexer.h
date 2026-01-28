@@ -42,15 +42,16 @@ enum class TokenType {
 };
 
 struct Token {
-	TokenType type;
-	double value;
-	std::string name;
+    TokenType type;
+    double value;
+    std::string name;
+    int line;
 
-	Token(TokenType t, double v = 0.0, std::string n = "")
-		: type(t), value(v), name(n) {
-	}
+    Token(TokenType t, int cl, double v = 0.0, std::string n = "")
+        : type(t), value(v), name(n), line(cl) {
+    }
 
-	Token() : type(TokenType::End), value(0.0), name("") {}
+    Token() : type(TokenType::End), value(0.0), name(""), line(0) {}
 };
 
 std::vector<Token> tokenize(const std::string& input);

@@ -176,6 +176,7 @@ struct Value {
     }
 };
 
+// exception signals
 struct ReturnException {
     Value value;
 };

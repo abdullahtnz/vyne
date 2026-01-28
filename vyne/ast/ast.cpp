@@ -233,13 +233,13 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         */
        
         if(methodName == "size"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array!");
+            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array at line " + std::to_string(lineNumber));
 
             return Value(static_cast<double>(target.asList().size()));
         }
 
         if (methodName == "push"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array!");
+            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array at line " + std::to_string(lineNumber));
 
             Value val = arguments[0]->evaluate(env, currentGroup);
             target.asList().emplace_back(val);
@@ -247,9 +247,9 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if(methodName == "pop"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method pop() on non-array!");
-            if(target.asList().empty()) throw std::runtime_error("Index Error: pop() from empty array.");
-            if(!arguments.empty()) throw std::runtime_error("Argument Error: pop() expects 0 arguments, but got " + std::to_string(arguments.size()) + ".");
+            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method pop() on non-array at line " + std::to_string(lineNumber));
+            if(target.asList().empty()) throw std::runtime_error("Index Error: pop() from empty array at line " + std::to_string(lineNumber));
+            if(!arguments.empty()) throw std::runtime_error("Argument Error: pop() expects 0 arguments, but got " + std::to_string(arguments.size()) + " at line " + std::to_string(lineNumber));
 
             Value lastValue = target.asList().back();
             
@@ -259,8 +259,8 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if(methodName == "delete"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method delete() on non-array!");
-            if(arguments.size() != 1) throw std::runtime_error("Argument Error: delete() expects exactly 1 argument, but got " + std::to_string(arguments.size()) + " instead.");
+            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method delete() on non-array at line " + std::to_string(lineNumber));
+            if(arguments.size() != 1) throw std::runtime_error("Argument Error: delete() expects exactly 1 argument, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
 
             Value val = arguments[0]->evaluate(env, currentGroup);
 
@@ -274,11 +274,11 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if (methodName == "sort") {
-            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: sort() called on non-array!");
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: sort() called on non-array at line " + std::to_string(lineNumber));
             if (!arguments.empty()) throw std::runtime_error("Argument Error: sort() expects 0 arguments.");
             
             for(auto& el : target.asList()){
-                if(el.getType() != Value::NUMBER) throw std::runtime_error("Value Error: Cannot sort string values!");
+                if(el.getType() != Value::NUMBER) throw std::runtime_error("Value Error: Cannot sort string values at line " + std::to_string(lineNumber));
             }
 
             std::sort(target.asList().begin(), target.asList().end());
@@ -287,8 +287,8 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if(methodName == "place_all"){
-            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: place_all() called on non-array!");
-            if (arguments.size() > 2) throw std::runtime_error("Argument Error: place_all() expects 2 arguments, but got " + std::to_string(arguments.size()) + " instead.");
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: place_all() called on non-array at line " + std::to_string(lineNumber));
+            if (arguments.size() > 2) throw std::runtime_error("Argument Error: place_all() expects 2 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
 
             Value element = arguments[0]->evaluate(env, currentGroup);
             Value count = arguments[1]->evaluate(env, currentGroup);
@@ -303,16 +303,16 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if(methodName == "reverse"){
-            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: reverse() called on non-array!");
-            if (arguments.size() > 0) throw std::runtime_error("Argument Error: reverse() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead.");
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: reverse() called on non-array at line " + std::to_string(lineNumber));
+            if (arguments.size() > 0) throw std::runtime_error("Argument Error: reverse() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
 
             std::reverse(target.asList().begin(), target.asList().end());
 
             return Value(target);
         }
         if(methodName == "clear"){
-            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: clear() called on non-array!");
-            if (arguments.size() > 0) throw std::runtime_error("Argument Error: clear() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead.");
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: clear() called on non-array at line " + std::to_string(lineNumber));
+            if (arguments.size() > 0) throw std::runtime_error("Argument Error: clear() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
 
             target.asList().clear();
 
