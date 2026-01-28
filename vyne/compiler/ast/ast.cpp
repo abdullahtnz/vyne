@@ -241,10 +241,13 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
                     argValues.push_back(arg->evaluate(env, currentGroup));
                 }
 
-                if (funcVal.asFunction()->isNative) {
-                    return funcVal.asFunction()->nativeFn(argValues);
-                }
-                
+               try {
+                    if (funcVal.asFunction()->isNative) {
+                        return funcVal.asFunction()->nativeFn(argValues);
+                    }
+                } catch (const std::exception& e) {
+                    throw std::runtime_error("Compilation Error : line " + std::to_string(lineNumber) + ": " + e.what());
+                }         
             }
             throw std::runtime_error("Module Error: Method '" + methodName + "' not found in module " + modName);
         }
