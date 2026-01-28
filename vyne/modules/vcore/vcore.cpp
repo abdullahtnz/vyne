@@ -63,7 +63,7 @@ namespace VCoreNative {
     }
 
     Value input(std::vector<Value>& args){
-        if(!args.empty() && args[0].getType() == 2){
+        if(!args.empty() && args[0].getType() == Value::STRING){
             std::cout << args[0].asString();
         }
 

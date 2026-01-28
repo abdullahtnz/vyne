@@ -27,9 +27,7 @@ struct Value {
         double,
         std::shared_ptr<std::string>,
         std::shared_ptr<std::vector<Value>>,
-        std::unordered_map<std::string, Value>,
-        std::shared_ptr<FunctionData>,
-        std::string
+        std::shared_ptr<FunctionData>
     >;
 
     VariantData data;
@@ -50,7 +48,7 @@ struct Value {
         data = std::move(func); 
     }
     Value(std::string moduleName, bool isModule) 
-    : data(std::move(moduleName)) {}
+    : data(std::make_shared<std::string>(std::move(moduleName))) {}
     Value(std::function<Value(std::vector<Value>&)> native) {
         auto func = std::make_shared<FunctionData>();
         func->nativeFn = std::move(native);
@@ -60,13 +58,31 @@ struct Value {
     Value(const Value&) = default;
 
     // safe getters
-    int getType() const { return data.index(); }
-    double asNumber() const { return std::get<double>(data); }
-    const std::string& asString() const { return *std::get<std::shared_ptr<std::string>>(data); }
-    std::vector<Value>& asList() { return *std::get<std::shared_ptr<std::vector<Value>>>(data); }
-    const std::vector<Value>& asList() const { return *std::get<std::shared_ptr<std::vector<Value>>>(data); }
-    const std::shared_ptr<FunctionData>& asFunction() const { return std::get<std::shared_ptr<FunctionData>>(data); }
-    const std::string& asModule() const { return std::get<std::string>(data); }
+    int getType() const { return (int)this->data.index(); }
+
+    double asNumber() const { 
+        return std::get<double>(this->data); 
+    }
+
+    const std::string& asString() const { 
+        return *std::get<std::shared_ptr<std::string>>(this->data); 
+    }
+
+    std::vector<Value>& asList() { 
+        return *std::get<std::shared_ptr<std::vector<Value>>>(this->data); 
+    }
+
+    const std::vector<Value>& asList() const { 
+        return *std::get<std::shared_ptr<std::vector<Value>>>(this->data); 
+    }
+
+    const std::shared_ptr<FunctionData>& asFunction() const { 
+        return std::get<std::shared_ptr<FunctionData>>(this->data); 
+    }
+
+    const std::string& asModule() const { 
+        return *std::get<std::shared_ptr<std::string>>(this->data); 
+    }
 
     // core value functions
     Value& setReadOnly();
@@ -78,13 +94,13 @@ struct Value {
     int toNumber() const;
 
     bool operator==(const Value& other) const {
-        if (data.index() != other.data.index()) return false;
+        if (this->data.index() != other.data.index()) return false;
 
-        switch (data.index()) {
+        switch (this->data.index()) {
             case 0: return true;
-            case 1: return std::get<double>(data) == std::get<double>(other.data);
-            case 2: return *std::get<std::shared_ptr<std::string>>(data) == *std::get<std::shared_ptr<std::string>>(other.data);
-            case 3: return *std::get<std::shared_ptr<std::vector<Value>>>(data) == *std::get<std::shared_ptr<std::vector<Value>>>(other.data);
+            case 1: return std::get<double>(this->data) == std::get<double>(other.data);
+            case 2: return *std::get<std::shared_ptr<std::string>>(this->data) == *std::get<std::shared_ptr<std::string>>(other.data);
+            case 3: return *std::get<std::shared_ptr<std::vector<Value>>>(this->data) == *std::get<std::shared_ptr<std::vector<Value>>>(other.data);
             default: return false; 
         }
     }

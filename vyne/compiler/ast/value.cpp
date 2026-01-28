@@ -32,7 +32,7 @@ void Value::print(std::ostream& os) const {
             os << "<function>";
             break;
         case 6:
-            os << "<module '" << std::get<std::string>(data) << "'>";
+            os << "<module '" << *std::get<std::shared_ptr<std::string>>(data) << "'>";
             break;
         default:
             os << "<unknown>";
