@@ -23,7 +23,6 @@ int main(int argc, char* argv[]) {
 	
 	env["global"]["pi"] = 3.14159;
 
-
 	std::string input;
 
 	if (argc > 1) {
