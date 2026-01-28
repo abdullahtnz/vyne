@@ -125,11 +125,7 @@ Value BuiltInCallNode::evaluate(SymbolContainer& env, std::string currentGroup) 
         if (argValues.empty()) return Value(0.0);
         return Value(static_cast<double>(argValues[0].getBytes()));
     }
-    else if (funcName == "string") {
-        if (argValues.size() != 1) throw std::runtime_error("Argument Error : string() expects 1 argument, but got " + std::to_string(argValues.size()) + " instead.");
 
-        return Value(argValues[0].toString());
-    }
     else if (funcName == "type") {
         if (argValues.size() != 1) throw std::runtime_error("Argument Error : string() expects 1 argument, but got " + std::to_string(argValues.size()) + " instead.");
 

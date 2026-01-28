@@ -49,6 +49,12 @@ namespace VCoreNative {
         );
         return Value(static_cast<double>(dist(gen)));
     }
+
+    Value string(std::vector<Value>& args){
+        if (args.size() != 1) throw std::runtime_error("Argument Error : string() expects 1 argument, but got " + std::to_string(args.size()) + " instead.");
+
+        return Value(args[0].toString());
+    }
 }
 
 
@@ -64,6 +70,7 @@ void setupBuiltIns(SymbolContainer& env) {
     vcore["sub@sleep"]    = Value(VCoreNative::sleep);
     vcore["sub@platform"] = Value(VCoreNative::platform);
     vcore["sub@random"]   = Value(VCoreNative::random);
+    vcore["sub@string"]   = Value(VCoreNative::string);
 
     // VCore properties
     vcore["version"]      = Value("v0.0.1-alpha").setReadOnly();
