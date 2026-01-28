@@ -31,6 +31,12 @@ jobs:
         run: |
           if [ -f "tests/stress_test.vy" ]; then
             ./vyne_run tests/stress_test.vy
+          if [ -f "tests/while_test.vy" ]; then
+            ./vyne_run tests/while_test.vy
+          if [ -f "tests/array_test.vy" ]; then
+            ./vyne_run tests/array_test.vy
+          if [ -f "tests/module_test.vy" ]; then
+            ./vyne_run tests/module_test.vy
           else
             echo "No test file found, skipping execution check."
           fi
