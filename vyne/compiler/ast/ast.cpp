@@ -238,7 +238,7 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
                 
                 std::vector<Value> argValues;
                 for (auto& arg : arguments) {
-                    argValues.push_back(arg->evaluate(env, currentGroup));
+                    argValues.emplace_back(arg->evaluate(env, currentGroup));
                 }
 
                try {
