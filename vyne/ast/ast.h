@@ -51,6 +51,14 @@ struct Value {
     std::vector<Value>& asList() { return std::get<std::vector<Value>>(data); }
     const std::vector<Value>& asList() const { return std::get<std::vector<Value>>(data); }
     const std::shared_ptr<FunctionData>& asFunction() const { return std::get<std::shared_ptr<FunctionData>>(data); }
+    bool isTruthy() const {
+        switch (data.index()) {
+            case 0: return false;
+            case 1: return std::get<double>(data) != 0;
+            case 2: return !std::get<std::string>(data).empty();
+            default: return true; 
+        }
+    }
 
     void print(std::ostream& os) const {
         switch(data.index()){

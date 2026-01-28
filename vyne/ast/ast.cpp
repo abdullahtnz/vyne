@@ -307,23 +307,23 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 }
 
 Value WhileNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    Value result;
+    Value lastResult;
 
-    while (true){
-        Value condVal = condition->evaluate(env, currentGroup);
-
-        if(condVal.getType() == Value::NUMBER && condVal.asNumber() == 0){
-            break;
-        }
-
+    while (condition->evaluate(env, currentGroup).isTruthy()) {
         try {
-            result = body->evaluate(env, currentGroup);
-        } catch(const BreakException& e){
+            lastResult = body->evaluate(env, currentGroup);
+            
+            // optimization idea: if the body returns a "return" flag, stop the loop
+            // and pass the return value up the chain.
+            // example implementation : if (lastResult.isReturn()) return lastResult;
+
+        } catch (const BreakException& e) {
             break;
-        } catch(const ContinueException& e){
+        } catch (const ContinueException& e) {
             continue;
         }
     }
+    return lastResult; 
 }
 
 Value BlockNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
