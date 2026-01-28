@@ -42,6 +42,7 @@ struct Value {
         
         data = std::move(func); 
     }
+    Value(const Value&) = default;
 
     // safe getters
     int getType() const { return data.index(); }
