@@ -374,16 +374,11 @@ Value IfNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value lastResult;
 
     if(condition->evaluate(env,currentGroup).isTruthy()){
-        try {
-            lastResult = body->evaluate(env, currentGroup);
-        } catch (const BreakException& e) {
-            throw;
-        } catch (const ContinueException& e) {
-            throw;
-        }
+        lastResult = body->evaluate(env, currentGroup);
+        return lastResult;
     }
 
-    return lastResult;
+    return Value();
 }
 
 Value BlockNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
