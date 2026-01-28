@@ -25,7 +25,9 @@ jobs:
               vyne/compiler/lexer/lexer.cpp \
               vyne/compiler/parser/parser.cpp \
               vyne/compiler/ast/ast.cpp \
-              vyne/modules/vcore.cpp \
+              vyne/compiler/ast/value.cpp \
+              vyne/modules/vcore/vcore.cpp \
+              vyne/modules/modules.cpp \
               -o vyne_run -Wall -Wextra
 
       - name: Run Tests
