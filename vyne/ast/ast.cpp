@@ -229,7 +229,7 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 
         /*
             Array methods are implemented from here
-            Current available methods : size, push, pop, delete, sort
+            Current available methods : size, push, pop, delete, sort, reverse, place_all, clear
         */
        
         if(methodName == "size"){
