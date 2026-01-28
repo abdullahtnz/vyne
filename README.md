@@ -22,6 +22,7 @@ This repository is under maintanance, meaning that current MD file is being used
      - sort()
      - place_all()
      - reverse()
+     - clear()
 4. Functions
    - Defined by `sub` keyword, taking arguments
 5. Groups
