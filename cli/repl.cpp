@@ -1,7 +1,7 @@
 #include "repl.h"
 
 void init_REPL(std::string& input, SymbolContainer& env){
-    std::cout << BOLD << CYAN << "Vyne Interpreter v1.0 (ID-Optimized)" << RESET << "\n";
+    std::cout << BOLD << CYAN << "Vyne Interpreter v1.0" << RESET << "\n";
     std::cout << "Type " << RED << "exit" << RESET << " to quit.\n\n";
 
     while (true) {
