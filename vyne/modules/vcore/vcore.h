@@ -6,4 +6,4 @@
 #include "../../compiler/ast/ast.h"
 #include "../../compiler/ast/value.h"
 
-void setupVCore(SymbolContainer& env);
+void setupVCore(SymbolContainer& env, StringPool& pool);

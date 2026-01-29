@@ -76,22 +76,22 @@ namespace VCoreNative {
     }
 }
 
-void setupVCore(SymbolContainer& env) {
-    if (env.find("global.vcore") == env.end()) {
-        env["global.vcore"] = SymbolTable();
+void setupVCore(SymbolContainer& env, StringPool& pool) {
+    std::string path = "global.vcore";
+    
+    if (env.find(path) == env.end()) {
+        env[path] = SymbolTable();
     }
 
-    auto& vcore = env["global.vcore"];
+    auto& vcore = env[path];
 
-    // VCore methods
-    vcore["sub@now"]      = Value(VCoreNative::now);
-    vcore["sub@sleep"]    = Value(VCoreNative::sleep);
-    vcore["sub@platform"] = Value(VCoreNative::platform);
-    vcore["sub@random"]   = Value(VCoreNative::random);
-    vcore["sub@string"]   = Value(VCoreNative::string);
-    vcore["sub@number"]   = Value(VCoreNative::number);
-    vcore["sub@input"]    = Value(VCoreNative::input);
+    vcore[pool.intern("now")]      = Value(VCoreNative::now);
+    vcore[pool.intern("sleep")]    = Value(VCoreNative::sleep);
+    vcore[pool.intern("platform")] = Value(VCoreNative::platform);
+    vcore[pool.intern("random")]   = Value(VCoreNative::random);
+    vcore[pool.intern("string")]   = Value(VCoreNative::string);
+    vcore[pool.intern("number")]   = Value(VCoreNative::number);
+    vcore[pool.intern("input")]    = Value(VCoreNative::input);
 
-    // VCore properties
-    vcore["version"]      = Value("v0.0.1-alpha").setReadOnly();
+    vcore[pool.intern("version")]  = Value("v0.0.1-alpha").setReadOnly();
 }

@@ -1,3 +1,5 @@
+module vcore;
+
 os = vcore.platform();
 version = vcore.version;
 

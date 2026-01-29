@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "../ast/value.h"
 
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
@@ -29,389 +30,355 @@ Token Parser::lookAhead(int distance) {
 }
 
 std::unique_ptr<ASTNode> Parser::parseFactor() {
-	Token current = peekToken();
-	int line = current.line;
+    Token current = peekToken();
+    int line = current.line;
 
-	// PARSE STRINGS
-	if (current.type == TokenType::String) {
-		consume(TokenType::String);
-		auto node = std::make_unique<StringNode>(current.name);
+    // PARSE STRINGS
+    if (current.type == TokenType::String) {
+        consume(TokenType::String);
+        auto node = std::make_unique<StringNode>(current.name);
         node->lineNumber = line;
         return node;
-	}
+    }
 
-	// PARSE NUMBERS
-	if (current.type == TokenType::Number) {
-		consume(TokenType::Number);
-		auto node = std::make_unique<NumberNode>(current.value);
+    // PARSE NUMBERS
+    if (current.type == TokenType::Number) {
+        consume(TokenType::Number);
+        auto node = std::make_unique<NumberNode>(current.value);
         node->lineNumber = line;
         return node;
-	}
+    }
 
-	// PARSE BOOLEANS
-	if (current.type == TokenType::True) {
-		consume(TokenType::True);
-		auto node = std::make_unique<BooleanNode>(true);
+    // PARSE BOOLEANS
+    if (current.type == TokenType::True) {
+        consume(TokenType::True);
+        auto node = std::make_unique<BooleanNode>(true);
         node->lineNumber = line;
         return node;
-	}
+    }
 
-	if (current.type == TokenType::False) {
-		consume(TokenType::False);
-		auto node = std::make_unique<BooleanNode>(false);
+    if (current.type == TokenType::False) {
+        consume(TokenType::False);
+        auto node = std::make_unique<BooleanNode>(false);
         node->lineNumber = line;
         return node;
-	}
+    }
 
-	// PARSE IDENTIFIERS
-	// x.pos = 5;
-	if (current.type == TokenType::Identifier) {
-		if (current.name == "return" || current.name == "sub" || current.name == "log") {
-			throw std::runtime_error("Syntax Error : Unexpected keyword '" + current.name + "'");
-		}
+    // PARSE IDENTIFIERS
+    if (current.type == TokenType::Identifier) {
+        if (current.name == "return" || current.name == "sub" || current.name == "log") {
+            throw std::runtime_error("Syntax Error : Unexpected keyword '" + current.name + "'");
+        }
 
-		std::vector<std::string> scope;
-		Token tok = consume(TokenType::Identifier);
-		std::unique_ptr<ASTNode> node = std::make_unique<VariableNode>(tok.name);
-		node->lineNumber = line;
-		std::string lastName = tok.name;
+        std::vector<std::string> scope;
+        Token tok = consume(TokenType::Identifier);
+        
+        // Intern the identifier immediately
+        uint32_t currentId = StringPool::instance().intern(tok.name);
+        std::string lastName = tok.name;
 
-		if (peekToken().type == TokenType::Left_Parenthese) {
-			consume(TokenType::Left_Parenthese);
-			std::vector<std::unique_ptr<ASTNode>> args;
-			if (peekToken().type != TokenType::Right_Parenthese) {
-				args.emplace_back(parseExpression());
-				while (peekToken().type == TokenType::Comma) {
-					consume(TokenType::Comma);
-					args.emplace_back(parseExpression());
-				}
-			}
-			consume(TokenType::Right_Parenthese);
-			node = std::make_unique<FunctionCallNode>(lastName, std::move(args));
-		}
+        std::unique_ptr<ASTNode> node;
 
-		while (peekToken().type == TokenType::Dot || peekToken().type == TokenType::Left_Bracket) {
-			if (peekToken().type == TokenType::Dot) {
-				consume(TokenType::Dot);
-				Token member = consume(TokenType::Identifier);
+        // Check for immediate Function Call: func()
+        if (peekToken().type == TokenType::Left_Parenthese) {
+            consume(TokenType::Left_Parenthese);
+            std::vector<std::unique_ptr<ASTNode>> args;
+            if (peekToken().type != TokenType::Right_Parenthese) {
+                args.emplace_back(parseExpression());
+                while (peekToken().type == TokenType::Comma) {
+                    consume(TokenType::Comma);
+                    args.emplace_back(parseExpression());
+                }
+            }
+            consume(TokenType::Right_Parenthese);
+            node = std::make_unique<FunctionCallNode>(currentId, lastName, std::move(args));
+        } else {
+            node = std::make_unique<VariableNode>(currentId);
+        }
 
-				if (peekToken().type == TokenType::Left_Parenthese) {
-					consume(TokenType::Left_Parenthese);
-					std::vector<std::unique_ptr<ASTNode>> args;
-					if (peekToken().type != TokenType::Right_Parenthese) {
-						args.emplace_back(parseExpression());
-						while (peekToken().type == TokenType::Comma) {
-							consume(TokenType::Comma);
-							args.emplace_back(parseExpression());
-						}
-					}
-					consume(TokenType::Right_Parenthese);
-					node = std::make_unique<MethodCallNode>(std::move(node), member.name, std::move(args));
-				} else {
-					scope.emplace_back(lastName);
-					lastName = member.name;
-					node = std::make_unique<VariableNode>(std::move(lastName), std::move(scope));
-				}
-			} else if (peekToken().type == TokenType::Left_Bracket) {
-				consume(TokenType::Left_Bracket);
-				auto indexExpr = parseExpression();
-				consume(TokenType::Right_Bracket);
-				node = std::make_unique<IndexAccessNode>(std::move(lastName), std::move(scope), std::move(indexExpr));
-			}
-		}
-		node->lineNumber = line;
-		return node;
-	}
+        // Handle property access (.member) or indexing ([idx])
+        while (peekToken().type == TokenType::Dot || peekToken().type == TokenType::Left_Bracket) {
+            if (peekToken().type == TokenType::Dot) {
+                consume(TokenType::Dot);
+                Token member = consume(TokenType::Identifier);
 
-	if (current.type == TokenType::Left_Parenthese) {
-		getNextToken();
-		auto node = parseExpression();
-		consume(TokenType::Right_Parenthese);
-		return node;
-	}
+                if (peekToken().type == TokenType::Left_Parenthese) {
+                    // Method call: receiver.member()
+                    consume(TokenType::Left_Parenthese);
+                    std::vector<std::unique_ptr<ASTNode>> args;
+                    if (peekToken().type != TokenType::Right_Parenthese) {
+                        args.emplace_back(parseExpression());
+                        while (peekToken().type == TokenType::Comma) {
+                            consume(TokenType::Comma);
+                            args.emplace_back(parseExpression());
+                        }
+                    }
+                    consume(TokenType::Right_Parenthese);
+                    node = std::make_unique<MethodCallNode>(std::move(node), member.name, std::move(args));
+                } else {
+                    // Nested variable: scope.lastName
+                    scope.emplace_back(lastName);
+                    lastName = member.name;
+                    uint32_t memberId = StringPool::instance().intern(member.name);
+                    node = std::make_unique<VariableNode>(memberId, std::move(scope));
+                }
+            } else if (peekToken().type == TokenType::Left_Bracket) {
+                // Index access: receiver[index]
+                consume(TokenType::Left_Bracket);
+                auto indexExpr = parseExpression();
+                consume(TokenType::Right_Bracket);
+                
+                // We use the ID of the last identified name for index access
+                uint32_t lastId = StringPool::instance().intern(lastName);
+                node = std::make_unique<IndexAccessNode>(lastId, lastName, scope, std::move(indexExpr));
+            }
+        }
+        node->lineNumber = line;
+        return node;
+    }
 
-	if(current.type == TokenType::Left_Bracket){
-		consume(TokenType::Left_Bracket);
+    if (current.type == TokenType::Left_Parenthese) {
+        getNextToken();
+        auto node = parseExpression();
+        consume(TokenType::Right_Parenthese);
+        return node;
+    }
 
-		std::vector<std::unique_ptr<ASTNode>> elements;
+    if(current.type == TokenType::Left_Bracket){
+        consume(TokenType::Left_Bracket);
+        std::vector<std::unique_ptr<ASTNode>> elements;
+        if(peekToken().type != TokenType::Right_Bracket){
+            elements.emplace_back(parseExpression());
+            while(peekToken().type == TokenType::Comma){
+                consume(TokenType::Comma);
+                elements.emplace_back(parseExpression());
+            }
+        }
+        consume(TokenType::Right_Bracket);
+        auto node = std::make_unique<ArrayNode>(std::move(elements));
+        node->lineNumber = line;
+        return node;
+    }
 
-		if(peekToken().type != TokenType::Right_Bracket){
-			elements.emplace_back(parseExpression());
+    // parse functions
+    if(current.type == TokenType::Function){
+        consume(TokenType::Function);
+        Token funcTok = consume(TokenType::Identifier);
+        uint32_t funcId = StringPool::instance().intern(funcTok.name);
 
-			while(peekToken().type == TokenType::Comma){
-				consume(TokenType::Comma);
-				elements.emplace_back(parseExpression());
-			}
-		}
+        consume(TokenType::Left_Parenthese);
+        std::vector<uint32_t> params; // ID based
+        if(peekToken().type != TokenType::Right_Parenthese){
+            params.push_back(StringPool::instance().intern(consume(TokenType::Identifier).name));
+            while (peekToken().type == TokenType::Comma) {
+                consume(TokenType::Comma);
+                params.push_back(StringPool::instance().intern(consume(TokenType::Identifier).name));
+            }
+        }
+        consume(TokenType::Right_Parenthese);
 
-		consume(TokenType::Right_Bracket);
-		auto node = std::make_unique<ArrayNode>(std::move(elements));
-		node->lineNumber = line;
-		return node;
-	}
+        consume(TokenType::Left_CB);
+        std::vector<std::shared_ptr<ASTNode>> body;
+        while(peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End){
+            body.emplace_back(parseStatement());
+        }
+        consume(TokenType::Right_CB);
 
-	// parse functions
-	if(current.type == TokenType::Function){
-		consume(TokenType::Function);
-		std::string funcName = consume(TokenType::Identifier).name;
+        auto node = std::make_unique<FunctionNode>(funcId, funcTok.name, std::move(params), std::move(body));
+        node->lineNumber = line;
+        return node;
+    }
 
-		// parser design for params
-		consume(TokenType::Left_Parenthese);
-		std::vector<std::string> params;
-		if(peekToken().type != TokenType::Right_Parenthese){
-			params.emplace_back(consume(TokenType::Identifier).name);
-			while (peekToken().type == TokenType::Comma) {
-				consume(TokenType::Comma);
-				params.push_back(consume(TokenType::Identifier).name);
-			}
-		}
-		consume(TokenType::Right_Parenthese);
+    if (peekToken().type == TokenType::BuiltIn) {
+        Token funcToken = consume(TokenType::BuiltIn);
+        std::string name = funcToken.name;
+        consume(TokenType::Left_Parenthese);
+        std::vector<std::unique_ptr<ASTNode>> args;
+        if (peekToken().type != TokenType::Right_Parenthese) {
+            args.emplace_back(parseExpression());
+            while (peekToken().type == TokenType::Comma) {
+                consume(TokenType::Comma);
+                args.emplace_back(parseExpression());
+            }
+        }
+        consume(TokenType::Right_Parenthese);
+        auto node = std::make_unique<BuiltInCallNode>(name, std::move(args));
+        node->lineNumber = line;
+        return node;
+    }
 
-		// parser design for bodies
-		consume(TokenType::Left_CB);
-		std::vector<std::shared_ptr<ASTNode>> body;
-		while(peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End){
-			body.emplace_back(parseStatement());
-		}
-		consume(TokenType::Right_CB);
-
-		auto node = std::make_unique<FunctionNode>(std::move(funcName),std::move(params), std::move(body));
-		node->lineNumber = line;
-		return node;
-	}
-
-	// for built-in functions
-	if (peekToken().type == TokenType::BuiltIn) {
-		Token funcToken = consume(TokenType::BuiltIn);
-		std::string name = funcToken.name;
-
-		consume(TokenType::Left_Parenthese);
-		std::vector<std::unique_ptr<ASTNode>> args;
-
-		if (peekToken().type != TokenType::Right_Parenthese) {
-			args.emplace_back(parseExpression());
-			while (peekToken().type == TokenType::Comma) {
-				consume(TokenType::Comma);
-				args.emplace_back(parseExpression());
-			}
-		}
-
-		consume(TokenType::Right_Parenthese);
-		
-		auto node = std::make_unique<BuiltInCallNode>(name, std::move(args));
-		node->lineNumber = line;
-		return node;
-	}
-
-	throw std::runtime_error("Expected number, identifier, or parenthesis");
+    throw std::runtime_error("Expected number, identifier, or parenthesis");
 }
 
 std::unique_ptr<ASTNode> Parser::parseTerm() {
-	auto left = parseFactor();
-
-	while (peekToken().type == TokenType::Multiply || peekToken().type == TokenType::Division) {
-		Token opToken = getNextToken();
-		TokenType opChar = (opToken.type == TokenType::Multiply) ? TokenType::Multiply : TokenType::Division;
-
-		auto right = parseFactor();
-		auto node = std::make_unique<BinOpNode>(opToken.type, std::move(left), std::move(right));
-		node->lineNumber = opToken.line; // <--- Add this
-		left = std::move(node);
-	}
-	return left;
+    auto left = parseFactor();
+    while (peekToken().type == TokenType::Multiply || peekToken().type == TokenType::Division) {
+        Token opToken = getNextToken();
+        auto right = parseFactor();
+        auto node = std::make_unique<BinOpNode>(opToken.type, std::move(left), std::move(right));
+        node->lineNumber = opToken.line;
+        left = std::move(node);
+    }
+    return left;
 }
 
 std::unique_ptr<ASTNode> Parser::parseRelational() {
-	auto left = parseTerm();
-
-	while (peekToken().type == TokenType::Greater || peekToken().type == TokenType::Smaller) {
-		Token opToken = getNextToken();
-		TokenType opChar = (opToken.type == TokenType::Greater) ? TokenType::Greater : TokenType::Smaller;
-
-		auto right = parseTerm();
-
-		left = std::make_unique<BinOpNode>(opChar, std::move(left), std::move(right));
-	}
-	return left;
+    auto left = parseTerm();
+    while (peekToken().type == TokenType::Greater || peekToken().type == TokenType::Smaller) {
+        Token opToken = getNextToken();
+        auto right = parseTerm();
+        left = std::make_unique<BinOpNode>(opToken.type, std::move(left), std::move(right));
+    }
+    return left;
 }
 
 std::unique_ptr<ASTNode> Parser::parseEquality() {
-	auto left = parseRelational();
-
-	while (peekToken().type == TokenType::Double_Equals) {
-		Token opToken = getNextToken();
-
-		auto right = parseRelational();
-
-		left = std::make_unique<BinOpNode>(TokenType::Double_Equals, std::move(left), std::move(right));
-	}
-	return left;
+    auto left = parseRelational();
+    while (peekToken().type == TokenType::Double_Equals) {
+        Token opToken = getNextToken();
+        auto right = parseRelational();
+        left = std::make_unique<BinOpNode>(TokenType::Double_Equals, std::move(left), std::move(right));
+    }
+    return left;
 }
 
 std::unique_ptr<ASTNode> Parser::parseExpression() {
-	auto left = parseEquality();
-
-	while (peekToken().type == TokenType::Add || peekToken().type == TokenType::Substract) {
-		Token opToken = getNextToken();
-		TokenType opChar = (opToken.type == TokenType::Add) ? TokenType::Add : TokenType::Substract;
-
-		auto right = parseTerm();
-
-		auto node = std::make_unique<BinOpNode>(opToken.type, std::move(left), std::move(right));
+    auto left = parseEquality();
+    while (peekToken().type == TokenType::Add || peekToken().type == TokenType::Substract) {
+        Token opToken = getNextToken();
+        auto right = parseTerm();
+        auto node = std::make_unique<BinOpNode>(opToken.type, std::move(left), std::move(right));
         node->lineNumber = opToken.line;
         left = std::move(node);
-	}
-	return left;
+    }
+    return left;
 }
 
-// statement parser ucun nezerde tutulub, if statementler elave olunacaq
 std::unique_ptr<ASTNode> Parser::parseStatement() {
-	Token current = peekToken();
-	int line = current.line;
+    Token current = peekToken();
+    int line = current.line;
 
-	if (current.type == TokenType::Left_CB) {
+    if (current.type == TokenType::Left_CB) {
         consume(TokenType::Left_CB);
         std::vector<std::shared_ptr<ASTNode>> statements;
-        
         while (peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End) {
             statements.emplace_back(parseStatement());
         }
-        
         consume(TokenType::Right_CB);
         auto node = std::make_unique<BlockNode>(std::move(statements));
-		node->lineNumber = line;
-		return node;
+        node->lineNumber = line;
+        return node;
     }
 
-	// return keyword
-	if (current.type == TokenType::Return) {
+    if (current.type == TokenType::Return) {
         consume(TokenType::Return);
         auto expr = parseExpression();
-        consume(TokenType::Semicolon);
+        consumeSemicolon();
         auto node = std::make_unique<ReturnNode>(std::move(expr));
-		node->lineNumber = line;
-		return node;
+        node->lineNumber = line;
+        return node;
     }
 
-	// assignment with scope, thanks to ferhad
-	if(current.type == TokenType::Identifier){
-		int checkPos = 1;
+    if(current.type == TokenType::Identifier){
+        int checkPos = 1;
+        while(lookAhead(checkPos).type == TokenType::Dot){
+            checkPos += 2;
+        }
+        if(lookAhead(checkPos).type == TokenType::Equals){
+            std::vector<std::string> path;
+            path.emplace_back(consume(TokenType::Identifier).name);
+            while (peekToken().type == TokenType::Dot) {
+                consume(TokenType::Dot);
+                path.emplace_back(consume(TokenType::Identifier).name);
+            }
+            std::string varName = path.back();
+            uint32_t varId = StringPool::instance().intern(varName); // Intern the ID
+            path.pop_back();
+            consume(TokenType::Equals);
+            auto rhs = parseExpression();
+            consumeSemicolon();
+            auto node = std::make_unique<AssignmentNode>(varId, varName, std::move(rhs), path);
+            node->lineNumber = line;
+            return node;
+        }
+    }
 
-		while(lookAhead(checkPos).type == TokenType::Dot){
-			checkPos += 2;
-		}
+    if (current.type == TokenType::Group) {
+        consume(TokenType::Group);
+        std::string treeName = consume(TokenType::Identifier).name;
+        consume(TokenType::Left_CB);
+        std::vector<std::unique_ptr<ASTNode>> statements;
+        while (peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End) {
+            statements.emplace_back(parseStatement());
+        }
+        consume(TokenType::Right_CB);
+        consumeSemicolon();
+        auto node = std::make_unique<GroupNode>(treeName, std::move(statements));
+        node->lineNumber = line;
+        return node;
+    }
 
-		if(lookAhead(checkPos).type == TokenType::Equals){
-			std::vector<std::string> path;
-			path.emplace_back(consume(TokenType::Identifier).name);
+    if (current.type == TokenType::While) {
+        consume(TokenType::While);
+        consume(TokenType::Left_Parenthese);
+        auto condition = parseExpression();
+        consume(TokenType::Right_Parenthese);
+        auto body = parseStatement();
+        auto node = std::make_unique<WhileNode>(std::move(condition), std::move(body));
+        node->lineNumber = line;
+        return node;
+    }
 
-			while (peekToken().type == TokenType::Dot) {
-				consume(TokenType::Dot);
-				path.emplace_back(consume(TokenType::Identifier).name);
-			}
+    if (current.type == TokenType::Break) {
+        consume(TokenType::Break);
+        consumeSemicolon();
+        auto node = std::make_unique<BreakNode>();
+        node->lineNumber = line;
+        return node;
+    }
 
-			std::string varName = path.back();
-			path.pop_back();
+    if (current.type == TokenType::Continue) {
+        consume(TokenType::Continue);
+        consumeSemicolon();
+        auto node = std::make_unique<ContinueNode>();
+        node->lineNumber = line;
+        return node;
+    }
 
-			consume(TokenType::Equals);
-			auto rhs = parseExpression();
-			consumeSemicolon();
+    if (current.type == TokenType::Module) {
+        consume(TokenType::Module);
+        Token nameToken = consume(TokenType::Identifier);
+        uint32_t mId = StringPool::instance().intern(nameToken.name);
+        consumeSemicolon();
+        auto node = std::make_unique<ModuleNode>(mId, nameToken.name);
+        node->lineNumber = line;
+        return node;
+    }
 
-			auto node = std::make_unique<AssignmentNode>(varName, std::move(rhs), path);
-			node->lineNumber = line;
-			return node;
-		}
-	}
+    if (current.type == TokenType::If) {
+        consume(TokenType::If);
+        consume(TokenType::Left_Parenthese);
+        auto condition = parseExpression();
+        consume(TokenType::Right_Parenthese);
+        auto body = parseStatement();
+        auto node = std::make_unique<IfNode>(std::move(condition), std::move(body));
+        node->lineNumber = line;
+        return node;
+    }
 
-	// parsing group nodes
-	if (current.type == TokenType::Group) {
-		consume(TokenType::Group);
-
-		std::string treeName = consume(TokenType::Identifier).name;
-
-		consume(TokenType::Left_CB);
-
-		std::vector<std::unique_ptr<ASTNode>> statements;
-
-		while (peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End) {
-			statements.emplace_back(parseStatement());
-		}
-
-		consume(TokenType::Right_CB);
-		consumeSemicolon();
-
-		auto node = std::make_unique<GroupNode>(treeName, std::move(statements));
-		node->lineNumber = line;
-		return node;
-	}
-
-	if (current.type == TokenType::While) {
-		consume(TokenType::While);
-		consume(TokenType::Left_Parenthese);
-		auto condition = parseExpression();
-		consume(TokenType::Right_Parenthese);
-
-		auto body = parseStatement();
-		auto node = std::make_unique<WhileNode>(std::move(condition), std::move(body));
-		node->lineNumber = line;
-		return node;
-	}
-
-	if (current.type == TokenType::Break) {
-		consume(TokenType::Break);
-		consumeSemicolon();
-		auto node = std::make_unique<BreakNode>();
-		node->lineNumber = line;
-		return node;
-	}
-
-	if (current.type == TokenType::Continue) {
-		consume(TokenType::Continue);
-		consumeSemicolon();
-		auto node = std::make_unique<ContinueNode>();
-		node->lineNumber = line;
-		return node;
-	}
-
-	// module keyword
-	if (current.type == TokenType::Module) {
-		consume(TokenType::Module);
-		
-		Token nameToken = consume(TokenType::Identifier);
-		std::string moduleName = nameToken.name;
-
-		consumeSemicolon();
-
-		auto node = std::make_unique<ModuleNode>(std::move(moduleName));
-		node->lineNumber = line;
-		return node;
-	}
-
-	if (current.type == TokenType::If) {
-		consume(TokenType::If);
-		consume(TokenType::Left_Parenthese);
-		auto condition = parseExpression();
-		consume(TokenType::Right_Parenthese);
-
-		auto body = parseStatement();
-		auto node = std::make_unique<IfNode>(std::move(condition), std::move(body));
-		node->lineNumber = line;
-		return node;
-	}
-
-	auto expr = parseExpression();
+    auto expr = parseExpression();
     consumeSemicolon(); 
     return expr;
 }
 
 Token Parser::consume(TokenType expected) {
-	Token t = peekToken();
-	if (t.type == expected) {
-		return tokens[pos++];
-	}
-	throw std::runtime_error("Error: Unexpected token type! Expected " +
-		tokenTypeToString(expected) + ", but got " +
-		tokenTypeToString(peekToken().type) + " instead.");
+    Token t = peekToken();
+    if (t.type == expected) {
+        return tokens[pos++];
+    }
+    throw std::runtime_error("Error: Unexpected token type! Expected " +
+        tokenTypeToString(expected) + ", but got " +
+        tokenTypeToString(peekToken().type) + " instead.");
 }
 
 void Parser::consumeSemicolon() {

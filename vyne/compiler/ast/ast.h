@@ -9,13 +9,14 @@
 #include <variant>
 #include <sstream>
 #include <functional>
+#include <cstdint>
 
 #include "../lexer/lexer.h"
 #include "value.h"
 
 class ASTNode;
 struct Value; 
-using SymbolTable = std::unordered_map<std::string, Value>;
+using SymbolTable = std::unordered_map<uint32_t, Value>;
 using SymbolContainer = std::unordered_map<std::string, SymbolTable>;
 
 // exception signals
@@ -52,27 +53,29 @@ public:
 };
 
 class VariableNode : public ASTNode {
-    std::string name;
+    uint32_t nameId;
+    std::string originalName; // for debuggers
     std::vector<std::string> specificGroup;
 public:
-    VariableNode(std::string name, std::vector<std::string>&& group = {})
-        : name(std::move(name)), specificGroup(std::move(group)) {
+    VariableNode(uint32_t nameId, std::vector<std::string>&& group = {})
+        : nameId(nameId), specificGroup(std::move(group)) {
     }
 
     Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
 
     // getters
     const std::vector<std::string>& getScope() { return specificGroup; }
-    const std::string& getName()  { return name; }
+    const uint32_t getNameId()  { return nameId; }
 };
 
 class AssignmentNode : public ASTNode {
-    std::string identifier;
+    uint32_t identifierId;
+    std::string originalName;
     std::unique_ptr<ASTNode> rhs;
     std::vector<std::string> scopePath;
 public:
-    AssignmentNode(std::string id, std::unique_ptr<ASTNode> rhs_ptr, std::vector<std::string> path = {})
-        : identifier(std::move(id)), rhs(std::move(rhs_ptr)), scopePath(std::move(path)) {
+    AssignmentNode(uint32_t id, std::string on,std::unique_ptr<ASTNode> rhs_ptr, std::vector<std::string> path = {})
+        : identifierId(id), originalName(std::move(on)), rhs(std::move(rhs_ptr)), scopePath(std::move(path)) {
     }
     Value evaluate(SymbolContainer& env, std::string currentGroup = "global") const override;
 };
@@ -124,37 +127,40 @@ public:
 };
 
 class IndexAccessNode : public ASTNode {
-    std::string name;
+    uint32_t nameId;
+    std::string originalName;
     std::vector<std::string> scope;
     std::unique_ptr<ASTNode> index;
 
 public :
-    IndexAccessNode(std::string n, std::vector<std::string> s, std::unique_ptr<ASTNode> idx)
-        : name(std::move(n)), scope(std::move(s)), index(std::move(idx)) {}
+    IndexAccessNode(uint32_t n, std::string on, std::vector<std::string> s, std::unique_ptr<ASTNode> idx)
+        : nameId(n), originalName(std::move(on)), scope(std::move(s)), index(std::move(idx)) {}
 
     Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
 };
 
 class FunctionNode : public ASTNode {
-    std::string name;
-    std::vector<std::string> parameters;
+    uint32_t funcNameId;
+    std::string originalName;
+    std::vector<uint32_t> parameterIds;
     std::vector<std::shared_ptr<ASTNode>> body;
 
 public:
-    FunctionNode(const std::string& n,std::vector<std::string> params, 
+    FunctionNode(uint32_t n,std::string on, std::vector<uint32_t> pid, 
                  std::vector<std::shared_ptr<ASTNode>> body)
-        : name(std::move(n)), parameters(std::move(params)), body(std::move(body)) {}
+        : funcNameId(n), originalName(std::move(on)), parameterIds(pid), body(std::move(body)) {}
 
     Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
 };
 
 class FunctionCallNode : public ASTNode {
-    std::string funcName;
+    uint32_t funcNameId;
+    std::string originalName;
     std::vector<std::unique_ptr<ASTNode>> arguments;
 
 public:
-    FunctionCallNode(std::string name, std::vector<std::unique_ptr<ASTNode>> args)
-        : funcName(std::move(name)), arguments(std::move(args)) {}
+    FunctionCallNode(uint32_t fn, std::string name, std::vector<std::unique_ptr<ASTNode>> args)
+        : funcNameId(fn), originalName(std::move(name)), arguments(std::move(args)) {}
 
     Value evaluate(SymbolContainer& env, std::string currentGroup = "global") const override;
 };
@@ -203,9 +209,10 @@ public:
 
 class ModuleNode : public ASTNode {
 public:
-    std::string moduleName;
+    uint32_t moduleId;
+    std::string originalName;
 
-    ModuleNode(std::string mName) : moduleName(std::move(mName)) {}
+    ModuleNode(uint32_t mId, std::string mName) : moduleId(mId), originalName(std::move(mName)) {}
 
     Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
 };

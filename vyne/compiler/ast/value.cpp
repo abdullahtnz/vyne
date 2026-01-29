@@ -117,3 +117,13 @@ bool Value::isTruthy() const {
         default: return true; 
     }
 }
+
+uint32_t StringPool::intern(const std::string& s) {
+    auto it = strToId.find(s);
+    if (it != strToId.end()) return it->second;
+
+    uint32_t newId = static_cast<uint32_t>(idToStr.size());
+    idToStr.push_back(s);
+    strToId[s] = newId;
+    return newId;
+}

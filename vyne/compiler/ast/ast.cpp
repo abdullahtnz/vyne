@@ -13,56 +13,38 @@ Value VariableNode::evaluate(SymbolContainer& env, std::string currentGroup) con
 
     auto groupIt = env.find(targetGroup);
     if (groupIt != env.end()) {
-        auto varIt = groupIt->second.find(name);
-        if (varIt != groupIt->second.end()) {
-            return varIt->second;
-        }
+        auto varIt = groupIt->second.find(nameId);
+        if (varIt != groupIt->second.end()) return varIt->second;
     }
 
     if (targetGroup != "global") {
         auto globalIt = env.find("global");
         if (globalIt != env.end()) {
-            auto varIt = globalIt->second.find(name);
+            auto varIt = globalIt->second.find(nameId);
             if (varIt != globalIt->second.end()) return varIt->second;
         }
     }
 
-    throw std::runtime_error("Variable '" + name + "' not found.");
+    throw std::runtime_error("Runtime Error: Variable ID '" + std::to_string(nameId) + "' not found.");
 }
 
 Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value val = rhs->evaluate(env, currentGroup);
-    std::string targetGroup;
+    std::string targetGroup = resolvePath(scopePath, currentGroup);
 
-    if (scopePath.empty()) {
-        targetGroup = currentGroup;
-    } else {
-        targetGroup = scopePath[0];
-        for (size_t i = 1; i < scopePath.size(); ++i) {
-            targetGroup += "." + scopePath[i];
-        }
-
-        if (currentGroup == "global" && env.find(targetGroup) == env.end()) {
-            std::string globalPath = "global." + targetGroup;
-            if (env.find(globalPath) != env.end()) {
-                targetGroup = globalPath;
-            }
-        }
+    auto& table = env[targetGroup]; 
+    auto it = table.find(identifierId);
+    
+    if (it != table.end() && it->second.isReadOnly) {
+        throw std::runtime_error("Runtime Error: Cannot reassign read-only '" + originalName + "'");
     }
 
-    if (env[targetGroup].count(identifier)){
-        if (env[targetGroup][identifier].isReadOnly){
-            throw std::runtime_error("Runtime Error: Cannot reassign to read-only property '" + identifier + "'");
-        }
-    }
-
-    env[targetGroup][identifier] = val; 
+    table[identifierId] = val; 
     return val;
 }
 
 Value GroupNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     std::string nextGroup = currentGroup + "." + groupName;
-    
     for (const auto& stmt : statements) {
         stmt->evaluate(env, nextGroup);
     }
@@ -81,130 +63,100 @@ Value BinOpNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
     if (l.getType() == Value::ARRAY && r.getType() == Value::ARRAY) {
         if (op == TokenType::Add) {
             Value result = l;
-
             result.asList().insert(result.asList().end(), r.asList().begin(), r.asList().end());
             return result;
         }
-        throw std::runtime_error("Type Error: Only '+' allowed for strings, numbers and arrays.");
-    }
-
-    if ((l.getType() == Value::STRING) != (r.getType() == Value::STRING)) {
-        throw std::runtime_error("Type Error: Cannot mix strings and numbers!");
     }
 
     switch (op) {
-    case TokenType::Add : return Value(l.asNumber() + r.asNumber());
-    case TokenType::Substract: return Value(l.asNumber() - r.asNumber());
-    case TokenType::Multiply: return Value(l.asNumber() * r.asNumber());
-    case TokenType::Division:
-        if (r.asNumber() == 0) throw std::runtime_error("Division by zero!");
-        return Value(l.asNumber() / r.asNumber());
-    case TokenType::Smaller: return Value(l.asNumber() < r.asNumber());
-    case TokenType::Greater: return Value(l.asNumber() > r.asNumber());
-    case TokenType::Double_Equals : return Value(l == r);
-    default:  return Value(0.0);
+        case TokenType::Add: return Value(l.asNumber() + r.asNumber());
+        case TokenType::Substract: return Value(l.asNumber() - r.asNumber());
+        case TokenType::Multiply: return Value(l.asNumber() * r.asNumber());
+        case TokenType::Division:
+            if (r.asNumber() == 0) throw std::runtime_error("Division by zero!");
+            return Value(l.asNumber() / r.asNumber());
+        case TokenType::Smaller: return Value(l.asNumber() < r.asNumber());
+        case TokenType::Greater: return Value(l.asNumber() > r.asNumber());
+        case TokenType::Double_Equals: return Value(l == r);
+        default: return Value(0.0);
     }
 }
 
 Value ArrayNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     std::vector<Value> results;
-
-    for (const auto& node : elements){
-        results.emplace_back(node->evaluate(env, currentGroup));
-    }
-
+    for (const auto& node : elements) results.emplace_back(node->evaluate(env, currentGroup));
     return Value(results);
 }
 
 Value BuiltInCallNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     std::vector<Value> argValues;
-    for (auto& arg : arguments) {
-        argValues.push_back(arg->evaluate(env, currentGroup));
-    }
+    for (auto& arg : arguments) argValues.push_back(arg->evaluate(env, currentGroup));
 
     if (funcName == "log") {
-        if (!argValues.empty()) {
-            argValues[0].print(std::cout);
-            std::cout << std::endl;
-        }
+        if (!argValues.empty()) { argValues[0].print(std::cout); std::cout << std::endl; }
         return Value();
     }
-    else if (funcName == "sizeof") {
-        if (argValues.empty()) return Value(0.0);
-        return Value(static_cast<double>(argValues[0].getBytes()));
-    }
-
-    else if (funcName == "type") {
-        if (argValues.size() != 1) throw std::runtime_error("Argument Error : type() expects 1 argument, but got " + std::to_string(argValues.size()) + " instead.");
-
+    if (funcName == "type") {
         int type = argValues[0].getType();
-
         switch(type) {
-            case Value::NONE:     return Value("null");
-            case Value::NUMBER:   return Value("number");
-            case Value::STRING:   return Value("string");
-            case Value::ARRAY:    return Value("array");
-            case Value::TABLE:    return Value("table");
+            case Value::NUMBER: return Value("number");
+            case Value::STRING: return Value("string");
+            case Value::ARRAY:  return Value("array");
             case Value::FUNCTION: return Value("function");
-            default:              return Value("unknown");
+            default: return Value("unknown");
         }
     }
-
-    throw std::runtime_error("Unknown built-in function: " + funcName);
+    throw std::runtime_error("Unknown built-in: " + funcName);
 }
 
 Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     std::string targetGroup = resolvePath(scope, currentGroup);
+    auto it = env[targetGroup].find(nameId);
 
-    if (!env.count(targetGroup) || !env[targetGroup].count(name)) {
-        throw std::runtime_error("Array '" + name + "' not found.");
-    }
-
-    Value& arrayVal = env[targetGroup][name];
-
-    if (arrayVal.getType() != Value::ARRAY) {
-        throw std::runtime_error("Type Error: '" + name + "' is not an array.");
-    }
+    if (it == env[targetGroup].end()) throw std::runtime_error("Array not found.");
+    Value& arrayVal = it->second;
 
     Value idxVal = index->evaluate(env, currentGroup);
-    
-    if (idxVal.getType() != Value::NUMBER) {
-        throw std::runtime_error("Index must be a number.");
-    }
-
     int i = static_cast<int>(idxVal.asNumber());
-
-    if (i < 0 || i >= static_cast<int>(arrayVal.asList().size())) {
-        throw std::runtime_error("Index out of bounds: " + std::to_string(i));
-    }
-
-    return arrayVal.asList()[i]; 
+    return arrayVal.asList().at(i); 
 }
 
+#include "ast.h"
+#include <random>
+
 Value FunctionNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    Value funcValue(parameters, body);
-    const std::string& functionName = "sub@" + this->name;
-    env[currentGroup][functionName] = funcValue; 
+    Value funcValue(parameterIds, body);
+
+    env[currentGroup][funcNameId] = funcValue; 
 
     return funcValue;
 }
 
 Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    Value funcVal = env["global"]["sub@" + funcName];
+    auto it = env["global"].find(funcNameId);
+    
+    if (it == env["global"].end()) {
+        throw std::runtime_error("Runtime Error: " + originalName + " is not defined in global scope.");
+    }
 
-    if(funcVal.getType() != Value::FUNCTION) throw std::runtime_error("Type Error : " + funcName + " is not a function.");
+    Value funcVal = it->second;
+
+    if (funcVal.getType() != Value::FUNCTION) {
+        throw std::runtime_error("Type Error: " + originalName + " is not a function.");
+    }
 
     std::vector<Value> evaluatedArgs;
-
-    for (const auto& arg : arguments){
+    for (const auto& arg : arguments) {
         evaluatedArgs.emplace_back(arg->evaluate(env, currentGroup));
     }
 
-    std::string localScope = "call_" + funcName + "_" + std::to_string(rand()); // for functions local scopes
+    std::string localScope = "call_" + originalName + "_" + std::to_string(rand());
 
     auto& params = funcVal.asFunction()->params;
 
-    if(params.size() != evaluatedArgs.size()) throw std::runtime_error("Argument Error : Argument count mismatch on function call " + funcName);
+    if (params.size() != evaluatedArgs.size()) {
+        throw std::runtime_error("Argument Error: Argument count mismatch on function call " + originalName);
+    }
     
     for (size_t i = 0; i < params.size(); ++i) {
         env[localScope][params[i]] = evaluatedArgs[i];
@@ -212,7 +164,7 @@ Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup)
 
     Value result;
     try {
-        for (const auto& bodyNode : funcVal.asFunction()->body){
+        for (const auto& bodyNode : funcVal.asFunction()->body) {
             result = bodyNode->evaluate(env, localScope);
         }
     } catch (const ReturnException& e) {
@@ -225,131 +177,114 @@ Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup)
 }
 
 Value ReturnNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    Value val = expression->evaluate(env, currentGroup);
-    throw ReturnException{val};
+    throw ReturnException{expression->evaluate(env, currentGroup)};
 }
 
 Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    VariableNode* var = dynamic_cast<VariableNode*>(receiver.get());
+    // 1. Evaluate the receiver to get the actual Value (Module, Array, etc.)
+    Value receiverVal = receiver->evaluate(env, currentGroup);
+    
+    // 2. Intern the method name for Module lookup
+    uint32_t methodId = StringPool::instance().intern(methodName);
 
-    if(var){
-        std::string targetGroup = resolvePath(var->getScope(), currentGroup);
-        Value& target = env[targetGroup][var->getName()];
+    // --- MODULE METHODS (vcore.platform(), etc.) ---
+    if (receiverVal.getType() == Value::MODULE) {
+        std::string modName = receiverVal.asModule();
+        std::string modPath = "global." + modName;
 
-        // module methods
-        if (target.getType() == Value::MODULE) {
-            std::string modName = target.asModule();
-            std::string modPath = "global." + modName;
-            std::string funcKey = "sub@" + methodName;
-
-            if (env.count(modPath) && env[modPath].count(funcKey)) {
-                Value& funcVal = env[modPath][funcKey];
-                
-                std::vector<Value> argValues;
-                for (auto& arg : arguments) {
-                    argValues.emplace_back(arg->evaluate(env, currentGroup));
-                }
-
-               try {
-                    if (funcVal.asFunction()->isNative) {
-                        return funcVal.asFunction()->nativeFn(argValues);
-                    }
-                } catch (const std::exception& e) {
-                    throw std::runtime_error("Compilation Error : line " + std::to_string(lineNumber) + ": " + e.what());
-                }         
+        if (env.count(modPath) && env[modPath].count(methodId)) {
+            Value& funcVal = env[modPath][methodId];
+            
+            std::vector<Value> argValues;
+            for (auto& arg : arguments) {
+                argValues.emplace_back(arg->evaluate(env, currentGroup));
             }
-            throw std::runtime_error("Module Error: Method '" + methodName + "' not found in module " + modName);
+
+            try {
+                if (funcVal.getType() == Value::FUNCTION && funcVal.asFunction()->isNative) {
+                    return funcVal.asFunction()->nativeFn(argValues);
+                }
+            } catch (const std::exception& e) {
+                // Restored your specific error format
+                throw std::runtime_error("Compilation Error : line " + std::to_string(lineNumber) + ": " + e.what());
+            }         
         }
+        throw std::runtime_error("Module Error: Method '" + methodName + "' not found in module " + modName);
+    }
 
-        /*
-            Array methods are implemented from here
-            Current available methods : size, push, pop, delete, sort, reverse, place_all, clear
-        */
-       
-        if(methodName == "size"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array at line " + std::to_string(lineNumber));
+    // --- ARRAY METHODS ---
+    if (receiverVal.getType() == Value::ARRAY) {
+        // We need the reference to the actual variable in the environment to modify it
+        VariableNode* var = dynamic_cast<VariableNode*>(receiver.get());
+        if (!var) throw std::runtime_error("Runtime Error: Cannot call methods on anonymous arrays at line " + std::to_string(lineNumber));
 
+        std::string targetGroup = resolvePath(var->getScope(), currentGroup);
+        // CRITICAL: Fetching by NameId to match the new SymbolTable keys
+        Value& target = env[targetGroup][var->getNameId()];
+
+        if (methodName == "size") {
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array at line " + std::to_string(lineNumber));
             return Value(static_cast<double>(target.asList().size()));
         }
 
-        if (methodName == "push"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array at line " + std::to_string(lineNumber));
-
+        if (methodName == "push") {
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array at line " + std::to_string(lineNumber));
             Value val = arguments[0]->evaluate(env, currentGroup);
             target.asList().emplace_back(val);
             return val;
         }
 
-        if(methodName == "pop"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method pop() on non-array at line " + std::to_string(lineNumber));
-            if(target.asList().empty()) throw std::runtime_error("Index Error: pop() from empty array at line " + std::to_string(lineNumber));
-            if(!arguments.empty()) throw std::runtime_error("Argument Error: pop() expects 0 arguments, but got " + std::to_string(arguments.size()) + " at line " + std::to_string(lineNumber));
+        if (methodName == "pop") {
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method pop() on non-array at line " + std::to_string(lineNumber));
+            if (target.asList().empty()) throw std::runtime_error("Index Error: pop() from empty array at line " + std::to_string(lineNumber));
+            if (!arguments.empty()) throw std::runtime_error("Argument Error: pop() expects 0 arguments, but got " + std::to_string(arguments.size()) + " at line " + std::to_string(lineNumber));
 
-            Value lastValue = target.asList().back();
-            
             target.asList().pop_back();
-
             return Value(true);
         }
 
-        if(methodName == "delete"){
-            if(target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method delete() on non-array at line " + std::to_string(lineNumber));
-            if(arguments.size() != 1) throw std::runtime_error("Argument Error: delete() expects exactly 1 argument, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
+        if (methodName == "delete") {
+            if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method delete() on non-array at line " + std::to_string(lineNumber));
+            if (arguments.size() != 1) throw std::runtime_error("Argument Error: delete() expects exactly 1 argument, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
 
             Value val = arguments[0]->evaluate(env, currentGroup);
-
             auto it = std::find(target.asList().begin(), target.asList().end(), val);
-
             if (it == std::end(target.asList())) throw std::runtime_error("Value error : Could not find given value in array!");
-
             target.asList().erase(it);
-
             return Value(true);
         }
 
         if (methodName == "sort") {
             if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: sort() called on non-array at line " + std::to_string(lineNumber));
             if (!arguments.empty()) throw std::runtime_error("Argument Error: sort() expects 0 arguments.");
-            
-            for(auto& el : target.asList()){
-                if(el.getType() != Value::NUMBER) throw std::runtime_error("Value Error: Cannot sort string values at line " + std::to_string(lineNumber));
+            for (auto& el : target.asList()) {
+                if (el.getType() != Value::NUMBER) throw std::runtime_error("Value Error: Cannot sort string values at line " + std::to_string(lineNumber));
             }
-
             std::sort(target.asList().begin(), target.asList().end());
-
             return Value(target); 
         }
 
-        if(methodName == "place_all"){
+        if (methodName == "place_all") {
             if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: place_all() called on non-array at line " + std::to_string(lineNumber));
             if (arguments.size() > 2) throw std::runtime_error("Argument Error: place_all() expects 2 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
-
             Value element = arguments[0]->evaluate(env, currentGroup);
             Value count = arguments[1]->evaluate(env, currentGroup);
-
             std::vector<Value> arr;
-
-            for(size_t i = 0; i < count.asNumber(); i++){
-                arr.emplace_back(element);
-            }
-
+            for (size_t i = 0; i < count.asNumber(); i++) arr.emplace_back(element);
             return Value(arr);
         }
 
-        if(methodName == "reverse"){
+        if (methodName == "reverse") {
             if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: reverse() called on non-array at line " + std::to_string(lineNumber));
             if (arguments.size() > 0) throw std::runtime_error("Argument Error: reverse() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
-
             std::reverse(target.asList().begin(), target.asList().end());
-
             return Value(target);
         }
-        if(methodName == "clear"){
+
+        if (methodName == "clear") {
             if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error: clear() called on non-array at line " + std::to_string(lineNumber));
             if (arguments.size() > 0) throw std::runtime_error("Argument Error: clear() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
-
             target.asList().clear();
-
             return Value(target);
         }
     }
@@ -359,70 +294,41 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 
 Value WhileNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value lastResult;
-
     while (condition->evaluate(env, currentGroup).isTruthy()) {
         try {
             lastResult = body->evaluate(env, currentGroup);
-            
-            // optimization idea: if the body returns a "return" flag, stop the loop
-            // and pass the return value up the chain.
-            // example implementation : if (lastResult.isReturn()) return lastResult;
-
-        } catch (const BreakException& e) {
-            break;
-        } catch (const ContinueException& e) {
-            continue;
-        }
+        } catch (const BreakException&) { break; }
+          catch (const ContinueException&) { continue; }
     }
     return lastResult; 
 }
 
 Value IfNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    Value lastResult;
-
-    if(condition->evaluate(env,currentGroup).isTruthy()){
-        lastResult = body->evaluate(env, currentGroup);
-        return lastResult;
+    if(condition->evaluate(env, currentGroup).isTruthy()){
+        return body->evaluate(env, currentGroup);
     }
-
     return Value();
 }
 
 Value BlockNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value lastValue;
-    
-    for (const auto& statement : statements) {
-        lastValue = statement->evaluate(env, currentGroup);
-    }
-    
+    for (const auto& statement : statements) lastValue = statement->evaluate(env, currentGroup);
     return lastValue; 
 }
 
 Value ModuleNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
-    std::string modulePath = "global." + moduleName;
-
-    if (moduleName == "vcore") {
-        setupVCore(env);
+    if (originalName == "vcore") {
+        setupVCore(env, StringPool::instance());
     } 
 
-    env[currentGroup][moduleName] = Value(moduleName, true); 
+    env[currentGroup][moduleId] = Value(originalName, true); 
     
-    std::cout << "[DEBUG] Imported module " << modulePath << "\n";
-    return env[currentGroup][moduleName];
+    return env[currentGroup][moduleId];
 }
 
-// helpers
 std::string resolvePath(std::vector<std::string> scope, std::string currentGroup) {
-    std::string targetGroup;
-    
-    if (scope.empty()) {
-        targetGroup = currentGroup;
-    } else {
-        targetGroup = "global";
-        for (const auto& g : scope) {
-            targetGroup += "." + g;
-        }
-    }
-
+    if (scope.empty()) return currentGroup;
+    std::string targetGroup = "global";
+    for (const auto& g : scope) targetGroup += "." + g;
     return targetGroup;
-};
+}

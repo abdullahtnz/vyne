@@ -9,13 +9,24 @@
 #include <variant>
 #include <sstream>
 #include <functional>
+#include <cstdint>
 
 class ASTNode;
+struct ModuleData { 
+    std::string name; 
+};
 
 struct Value {
-    enum TypeIndex { NONE = 0, NUMBER = 1, STRING = 2, ARRAY = 3, TABLE = 4, FUNCTION = 5, MODULE = 6 };
+    enum TypeIndex { 
+        NONE = 0, 
+        NUMBER = 1, 
+        STRING = 2, 
+        ARRAY = 3, 
+        FUNCTION = 4, 
+        MODULE = 5 
+    };
     struct FunctionData {
-        std::vector<std::string> params;
+        std::vector<uint32_t> params;
         std::vector<std::shared_ptr<ASTNode>> body; 
 
         std::function<Value(std::vector<Value>&)> nativeFn;
@@ -27,7 +38,8 @@ struct Value {
         double,
         std::shared_ptr<std::string>,
         std::shared_ptr<std::vector<Value>>,
-        std::shared_ptr<FunctionData>
+        std::shared_ptr<FunctionData>,
+        ModuleData
     >;
 
     VariantData data;
@@ -40,7 +52,7 @@ struct Value {
     Value(std::vector<Value> l) 
     : data(std::make_shared<std::vector<Value>>(std::move(l))) {}
     Value(std::shared_ptr<FunctionData> f) : data(std::move(f)) {}
-    Value(std::vector<std::string> p, std::vector<std::shared_ptr<ASTNode>> b) {
+    Value(std::vector<uint32_t> p, std::vector<std::shared_ptr<ASTNode>> b) {
         auto func = std::make_shared<FunctionData>();
         func->params = std::move(p);
         func->body = std::move(b);
@@ -48,7 +60,7 @@ struct Value {
         data = std::move(func); 
     }
     Value(std::string moduleName, bool isModule) 
-    : data(std::make_shared<std::string>(std::move(moduleName))) {}
+        : data(ModuleData{std::move(moduleName)}) {}
     Value(std::function<Value(std::vector<Value>&)> native) {
         auto func = std::make_shared<FunctionData>();
         func->nativeFn = std::move(native);
@@ -58,7 +70,7 @@ struct Value {
     Value(const Value&) = default;
 
     // safe getters
-    int getType() const { return (int)this->data.index(); }
+    int getType() const { return static_cast<int>(data.index()); }
 
     double asNumber() const { 
         return std::get<double>(this->data); 
@@ -81,7 +93,7 @@ struct Value {
     }
 
     const std::string& asModule() const { 
-        return *std::get<std::shared_ptr<std::string>>(this->data); 
+        return std::get<ModuleData>(data).name; 
     }
 
     // core value functions
@@ -120,4 +132,18 @@ struct Value {
         }
     }
 
+};
+
+class StringPool {
+    std::vector<std::string> idToStr;
+    std::unordered_map<std::string, uint32_t> strToId;
+
+public:
+    static StringPool& instance() {
+            static StringPool pool;
+            return pool;
+        }
+    uint32_t intern(const std::string& s);
+
+    const std::string& get(uint32_t id) { return idToStr[id]; }
 };
