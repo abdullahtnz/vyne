@@ -86,6 +86,13 @@ Value BinOpNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
         case TokenType::Smaller: return Value(l.asNumber() < r.asNumber());
         case TokenType::Greater: return Value(l.asNumber() > r.asNumber());
         case TokenType::Double_Equals: return Value(l == r);
+        case TokenType::And: {
+            if (l.asNumber() == 0) { 
+                return Value(0);
+            }
+            
+            return Value(r.asNumber() != 0 ? 1 : 0);
+        }
         default: return Value(0.0);
     }
 }

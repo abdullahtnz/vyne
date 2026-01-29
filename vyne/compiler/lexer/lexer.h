@@ -24,6 +24,7 @@ enum class TokenType {
 	Right_Parenthese,
 	Identifier,
 	Equals,
+	And,
 	Left_CB,
 	Right_CB,
 	Left_Bracket,

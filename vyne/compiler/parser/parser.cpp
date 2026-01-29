@@ -251,8 +251,18 @@ std::unique_ptr<ASTNode> Parser::parseRelational() {
     return left;
 }
 
-std::unique_ptr<ASTNode> Parser::parseEquality() {
+std::unique_ptr<ASTNode> Parser::parseAnd() {
     auto left = parseRelational();
+    while (peekToken().type == TokenType::And) {
+        Token opToken = getNextToken();
+        auto right = parseRelational();
+        left = std::make_unique<BinOpNode>(TokenType::And, std::move(left), std::move(right));
+    }
+    return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseEquality() {
+    auto left = parseAnd();
     while (peekToken().type == TokenType::Double_Equals) {
         Token opToken = getNextToken();
         auto right = parseRelational();
