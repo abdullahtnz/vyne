@@ -394,6 +394,16 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return node;
     }
 
+    if (current.type == TokenType::Dismiss) {
+        consume(TokenType::Dismiss);
+        Token nameToken = consume(TokenType::Identifier);
+        uint32_t mId = StringPool::instance().intern(nameToken.name);
+        consumeSemicolon();
+        auto node = std::make_unique<DismissNode>(mId, nameToken.name);
+        node->lineNumber = line;
+        return node;
+    }
+
     if (current.type == TokenType::If) {
         consume(TokenType::If);
         consume(TokenType::Left_Parenthese);

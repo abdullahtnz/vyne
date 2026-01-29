@@ -218,6 +218,16 @@ public:
     Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
 };
 
+class DismissNode : public ASTNode {
+public:
+    uint32_t moduleId;
+    std::string originalName;
+
+    DismissNode(uint32_t mId, std::string mName) : moduleId(mId), originalName(std::move(mName)) {}
+
+    Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
+};
+
 class IfNode : public ASTNode {
 public:
     std::unique_ptr<ASTNode> condition;

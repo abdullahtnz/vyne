@@ -372,6 +372,21 @@ Value ModuleNode::evaluate(SymbolContainer& env, std::string currentGroup) const
     return env[currentGroup][moduleId];
 }
 
+Value DismissNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
+    std::string scopedName = currentGroup + "." + originalName;
+    if (env.erase(scopedName)) {
+        return Value(1.0);
+    }
+
+    if (currentGroup != "global") {
+        if (env.erase("global." + originalName)) {
+            return Value(1.0);
+        }
+    }
+
+    return Value(0.0);
+}
+
 std::string resolvePath(std::vector<std::string> scope, std::string currentGroup) {
     if (scope.empty()) return currentGroup;
     std::string targetGroup = "global";
