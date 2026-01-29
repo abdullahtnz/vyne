@@ -13,6 +13,7 @@
 
 class ASTNode;
 struct ModuleData { 
+    uint32_t moduleId;
     std::string name; 
 };
 
@@ -59,8 +60,8 @@ struct Value {
         
         data = std::move(func); 
     }
-    Value(std::string moduleName, bool isModule) 
-        : data(ModuleData{std::move(moduleName)}) {}
+    Value(uint32_t mId, std::string moduleName, bool isModule) 
+        : data(ModuleData{mId, std::move(moduleName)}) {}
     Value(std::function<Value(std::vector<Value>&)> native) {
         auto func = std::make_shared<FunctionData>();
         func->nativeFn = std::move(native);

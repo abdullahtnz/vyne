@@ -32,6 +32,7 @@ enum class TokenType {
 	Semicolon,
 	Dot,
 	Double_Equals,
+	Extends,
 	// Built-in keywords
 	BuiltIn,
 	While,

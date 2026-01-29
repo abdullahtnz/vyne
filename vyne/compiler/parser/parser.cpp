@@ -155,14 +155,39 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
     }
 
     // parse functions
-    if(current.type == TokenType::Function){
+    if (current.type == TokenType::Function) {
         consume(TokenType::Function);
-        Token funcTok = consume(TokenType::Identifier);
-        uint32_t funcId = StringPool::instance().intern(funcTok.name);
+        
+        std::string targetModule = "global";
+        uint32_t funcId;
+        std::string funcName;
+
+        if (peekToken().type == TokenType::Extends) {
+            consume(TokenType::Extends); 
+            targetModule = consume(TokenType::Identifier).name;
+            
+            Token actualFuncTok = consume(TokenType::Identifier);
+            funcName = actualFuncTok.name;
+            funcId = StringPool::instance().intern(funcName);
+        } 
+        else {
+            Token firstTok = consume(TokenType::Identifier);
+            
+            if (peekToken().type == TokenType::Extends) {
+                consume(TokenType::Extends);
+                targetModule = firstTok.name;
+                Token actualFuncTok = consume(TokenType::Identifier);
+                funcName = actualFuncTok.name;
+                funcId = StringPool::instance().intern(funcName);
+            } else {
+                funcName = firstTok.name;
+                funcId = StringPool::instance().intern(funcName);
+            }
+        }
 
         consume(TokenType::Left_Parenthese);
-        std::vector<uint32_t> params; // ID based
-        if(peekToken().type != TokenType::Right_Parenthese){
+        std::vector<uint32_t> params;
+        if (peekToken().type != TokenType::Right_Parenthese) {
             params.push_back(StringPool::instance().intern(consume(TokenType::Identifier).name));
             while (peekToken().type == TokenType::Comma) {
                 consume(TokenType::Comma);
@@ -173,12 +198,12 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
 
         consume(TokenType::Left_CB);
         std::vector<std::shared_ptr<ASTNode>> body;
-        while(peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End){
+        while (peekToken().type != TokenType::Right_CB && peekToken().type != TokenType::End) {
             body.emplace_back(parseStatement());
         }
         consume(TokenType::Right_CB);
 
-        auto node = std::make_unique<FunctionNode>(funcId, funcTok.name, std::move(params), std::move(body));
+        auto node = std::make_unique<FunctionNode>(targetModule, funcId, funcName, std::move(params), std::move(body));
         node->lineNumber = line;
         return node;
     }

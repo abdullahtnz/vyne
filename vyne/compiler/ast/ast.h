@@ -140,15 +140,16 @@ public :
 };
 
 class FunctionNode : public ASTNode {
+    std::string targetModule;
     uint32_t funcNameId;
     std::string originalName;
     std::vector<uint32_t> parameterIds;
     std::vector<std::shared_ptr<ASTNode>> body;
 
 public:
-    FunctionNode(uint32_t n,std::string on, std::vector<uint32_t> pid, 
+    FunctionNode(std::string tm, uint32_t n,std::string on, std::vector<uint32_t> pid, 
                  std::vector<std::shared_ptr<ASTNode>> body)
-        : funcNameId(n), originalName(std::move(on)), parameterIds(pid), body(std::move(body)) {}
+        : targetModule(tm), funcNameId(n), originalName(std::move(on)), parameterIds(pid), body(std::move(body)) {}
 
     Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
 };

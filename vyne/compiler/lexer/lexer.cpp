@@ -114,6 +114,13 @@ std::vector<Token> tokenize(const std::string& input) {
                 i--; 
                 break;
             }
+            case ':' : {
+                if(i + 1 < input.length() && input[i + 1] == ':'){
+                    tokens.emplace_back(TokenType::Extends, currentLine, 0, "::");
+                    i++;
+                }
+                break;
+            }
             default:
                 std::cerr << "Unexpected character: " << character << std::endl;
                 break;
@@ -147,6 +154,7 @@ std::string tokenTypeToString(TokenType type) {
         case TokenType::Right_Bracket:    return "']'";
         case TokenType::Comma:            return "','";
         case TokenType::Semicolon:        return "';'";
+        case TokenType::Extends:          return "'::'";
         case TokenType::Dot:              return "'.'";
         case TokenType::Greater:          return "'>'";
         case TokenType::Smaller:          return "'<'";

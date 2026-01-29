@@ -127,7 +127,9 @@ Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) 
 Value FunctionNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value funcValue(parameterIds, body);
 
-    env[currentGroup][funcNameId] = funcValue; 
+    std::string destination = targetModule.empty() ? currentGroup : "global." + targetModule;
+
+    env[destination][funcNameId] = funcValue; 
 
     return funcValue;
 }
@@ -182,28 +184,37 @@ Value ReturnNode::evaluate(SymbolContainer& env, std::string currentGroup) const
 
 Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value receiverVal = receiver->evaluate(env, currentGroup);
-    
     uint32_t methodId = StringPool::instance().intern(methodName);
 
     if (receiverVal.getType() == Value::MODULE) {
         std::string modName = receiverVal.asModule();
-        std::string modPath = "global." + modName;
+        std::string modPath = "global." + modName; 
 
         if (env.count(modPath) && env[modPath].count(methodId)) {
             Value& funcVal = env[modPath][methodId];
-            
-            std::vector<Value> argValues;
-            for (auto& arg : arguments) {
-                argValues.emplace_back(arg->evaluate(env, currentGroup));
-            }
 
-            try {
-                if (funcVal.getType() == Value::FUNCTION && funcVal.asFunction()->isNative) {
-                    return funcVal.asFunction()->nativeFn(argValues);
+            if (funcVal.getType() == Value::FUNCTION) {
+                auto func = funcVal.asFunction();
+
+                std::vector<Value> argValues;
+                for (auto& arg : arguments) {
+                    argValues.emplace_back(arg->evaluate(env, currentGroup));
                 }
-            } catch (const std::exception& e) {
-                throw std::runtime_error("Compilation Error : line " + std::to_string(lineNumber) + ": " + e.what());
-            }         
+
+                if (func->isNative) {
+                    return func->nativeFn(argValues); 
+                } 
+
+                for (size_t i = 0; i < func->params.size() && i < argValues.size(); ++i) {
+                    env[modPath][func->params[i]] = argValues[i];
+                }
+
+                Value result(0.0); 
+                for (auto& stmt : func->body) {
+                    result = stmt->evaluate(env, modPath);
+                }
+                return result;
+            }
         }
         throw std::runtime_error("Module Error: Method '" + methodName + "' not found in module " + modName);
     }
@@ -313,9 +324,9 @@ Value BlockNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
 Value ModuleNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     if (originalName == "vcore") {
         setupVCore(env, StringPool::instance());
-    } 
+    }
 
-    env[currentGroup][moduleId] = Value(originalName, true); 
+    env[currentGroup][moduleId] = Value(moduleId, originalName, true); 
     
     return env[currentGroup][moduleId];
 }
