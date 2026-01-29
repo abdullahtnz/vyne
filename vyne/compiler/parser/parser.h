@@ -13,12 +13,37 @@ class Parser {
 private:
 	std::vector<Token> tokens;
 	size_t pos = 0;
+
+	// --- Literal Workers ---
+	std::unique_ptr<ASTNode> parseStringLiteral();
+    std::unique_ptr<ASTNode> parseNumberLiteral();
+    std::unique_ptr<ASTNode> parseBooleanLiteral();
+    std::unique_ptr<ASTNode> parseArrayLiteral();
+    std::unique_ptr<ASTNode> parseGroupingExpr();
+    std::unique_ptr<ASTNode> parseIdentifierExpr();
+
+	// --- Statement Workers (The Chunking) ---
+	std::unique_ptr<ASTNode> parseBlock();
+	std::unique_ptr<ASTNode> parseReturnStatement();
+	std::unique_ptr<ASTNode> parseIfStatement();
+	std::unique_ptr<ASTNode> parseWhileLoop();
+	std::unique_ptr<ASTNode> parseAssignment();
+	std::unique_ptr<ASTNode> parseGroupDefinition();
+	std::unique_ptr<ASTNode> parseModuleStatement();
+	std::unique_ptr<ASTNode> parseDismissStatement();
+	std::unique_ptr<ASTNode> parseLoopControl();
 public:
+	// --- Navigation ---
+    Token peekToken();
+	Token getNextToken();
+    Token lookAhead(int distance);
+    Token consume(TokenType expected);
+    void consumeSemicolon();
+
 	Parser(std::vector<Token> t) : tokens(t) {};
 
-	Token getNextToken();
-	Token peekToken();
-	Token lookAhead(int distance);
+	std::unique_ptr<ASTNode> parseFunctionDefinition();
+	std::unique_ptr<ASTNode> parseBuiltInCall();
 	std::unique_ptr<ASTNode> parseFactor();
 	std::unique_ptr<ASTNode> parseTerm();
 	std::unique_ptr<ASTNode> parseRelational();
@@ -27,6 +52,4 @@ public:
 	std::unique_ptr<ASTNode> parseEquality();
 	std::unique_ptr<ASTNode> parseExpression();
 	std::unique_ptr<ASTNode> parseStatement();
-	Token consume(TokenType expected);
-	void consumeSemicolon();
 };
