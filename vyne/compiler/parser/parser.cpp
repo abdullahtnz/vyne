@@ -91,7 +91,7 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
             consume(TokenType::Right_Parenthese);
             node = std::make_unique<FunctionCallNode>(currentId, lastName, std::move(args));
         } else {
-            node = std::make_unique<VariableNode>(currentId);
+            node = std::make_unique<VariableNode>(currentId, tok.name);
         }
 
         while (peekToken().type == TokenType::Dot || peekToken().type == TokenType::Left_Bracket) {
@@ -116,7 +116,7 @@ std::unique_ptr<ASTNode> Parser::parseFactor() {
                     scope.emplace_back(lastName);
                     lastName = member.name;
                     uint32_t memberId = StringPool::instance().intern(member.name);
-                    node = std::make_unique<VariableNode>(memberId, std::move(scope));
+                    node = std::make_unique<VariableNode>(memberId, lastName, std::move(scope));
                 }
             } else if (peekToken().type == TokenType::Left_Bracket) {
                 consume(TokenType::Left_Bracket);
