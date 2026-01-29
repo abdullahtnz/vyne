@@ -34,7 +34,7 @@ int runFile(const std::string& filename, SymbolContainer& env){
         }
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> ms = end - start;
-        std::cout << GREEN << "\nExecution finished in: " << ms.count() << "ms" << RESET << std::endl;
+        std::cout << GREEN << "\nExecution finished in: " << ms.count() << "ms" << RESET;
     } catch (const std::exception& e) {
         std::cerr << RED << "Runtime/Compilation Error: " << e.what() << RESET << "\n";
     }

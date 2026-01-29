@@ -1,5 +1,6 @@
 x = [];
 a = 5;
 b = 7;
-x.clear();
+
+x.push(a,b);
 log(x);

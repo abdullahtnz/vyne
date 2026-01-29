@@ -234,9 +234,13 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 
         if (methodName == "push") {
             if (target.getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array at line " + std::to_string(lineNumber));
-            Value val = arguments[0]->evaluate(env, currentGroup);
-            target.asList().emplace_back(val);
-            return val;
+
+            for(auto& arg : arguments){
+                Value val = arg->evaluate(env, currentGroup);
+                target.asList().emplace_back(val);
+            }
+
+            return receiverVal;
         }
 
         if (methodName == "pop") {
