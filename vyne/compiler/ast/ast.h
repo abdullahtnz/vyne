@@ -109,6 +109,16 @@ public:
     }
 };
 
+class BooleanNode : public ASTNode {
+    bool condition;
+public :
+    BooleanNode(bool c) : condition(c) {}
+
+    Value evaluate(SymbolContainer& env, std::string currentGroup = "global") const override {
+        return Value(condition);
+    };
+};
+
 class ArrayNode : public ASTNode {
     std::vector<std::unique_ptr<ASTNode>> elements;
 public:
