@@ -22,7 +22,6 @@ double getPhysicalMemoryUsage() {
     long rss = 0L;
     std::ifstream fp("/proc/self/statm");
     if (fp >> rss) {
-        // Linux returns pages; multiply by page size (usually 4096)
         return static_cast<double>(rss) * sysconf(_SC_PAGESIZE);
     }
 #elif __APPLE__
