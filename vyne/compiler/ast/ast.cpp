@@ -2,6 +2,12 @@
 #include "../../modules/vcore/vcore.h"
 #include "../../modules/vglib/vglib.h"
 
+Value ProgramNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
+    Value lastValue;
+    for (const auto& statement : statements) lastValue = statement->evaluate(env, currentGroup);
+    return lastValue; 
+}
+
 Value NumberNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     return Value(value);
 }

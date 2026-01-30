@@ -34,6 +34,16 @@ public:
     virtual Value evaluate(SymbolContainer& env, std::string currentGroup = "global") const = 0;
 };
 
+class ProgramNode : public ASTNode {
+public:
+    std::vector<std::shared_ptr<ASTNode>> statements;
+
+    ProgramNode(std::vector<std::shared_ptr<ASTNode>> stmts) 
+        : statements(std::move(stmts)) {}
+
+    Value evaluate(SymbolContainer& env, std::string currentGroup = "global") const override;
+};
+
 class GroupNode : public ASTNode {
     const std::string groupName;
     std::vector<std::unique_ptr<ASTNode>> statements;

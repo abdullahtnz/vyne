@@ -55,5 +55,5 @@ public:
 	std::unique_ptr<ASTNode>   parseEquality();
 	std::unique_ptr<ASTNode>   parseExpression();
 	std::unique_ptr<ASTNode>   parseStatement();
-	std::unique_ptr<BlockNode> parseProgram();
+	std::unique_ptr<ProgramNode> parseProgram();
 };

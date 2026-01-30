@@ -482,12 +482,12 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     }
 }
 
-std::unique_ptr<BlockNode> Parser::parseProgram() {
+std::unique_ptr<ProgramNode> Parser::parseProgram() {
     std::vector<std::shared_ptr<ASTNode>> statements;
     while (peekToken().type != TokenType::End) {
         statements.push_back(parseStatement());
     }
-    return std::make_unique<BlockNode>(std::move(statements));
+    return std::make_unique<ProgramNode>(std::move(statements));
 }
 
 Token Parser::consume(TokenType expected) {
