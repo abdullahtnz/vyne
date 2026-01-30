@@ -15,7 +15,7 @@ Value NumberNode::evaluate(SymbolContainer& env, std::string currentGroup) const
 /**
  * @brief Retrieves a variable's value from the SymbolContainer.
  * * @details Performs a scoped lookup:
- * 1. Checks the specific group (if provided, e.g., Nihad.score).
+ * 1. Checks the specific group (if provided, e.g., tracker.lineCount).
  * 2. Checks the current local group.
  * 3. Falls back to the "global" group if not found locally.
  * @see AssignmentNode::evaluate
