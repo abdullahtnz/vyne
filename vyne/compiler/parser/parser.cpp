@@ -250,9 +250,7 @@ std::unique_ptr<ASTNode> Parser::parseIfStatement() {
     int line = peekToken().line;
     consume(TokenType::If);
     
-    consume(TokenType::Left_Parenthese);
     auto condition = parseExpression();
-    consume(TokenType::Right_Parenthese);
     
     auto body = parseStatement();
     auto node = std::make_unique<IfNode>(std::move(condition), std::move(body));
@@ -264,9 +262,7 @@ std::unique_ptr<ASTNode> Parser::parseWhileLoop() {
     int line = peekToken().line;
     consume(TokenType::While);
     
-    consume(TokenType::Left_Parenthese);
     auto condition = parseExpression();
-    consume(TokenType::Right_Parenthese);
     
     auto body = parseStatement();
     auto node = std::make_unique<WhileNode>(std::move(condition), std::move(body));
