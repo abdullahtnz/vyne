@@ -35,6 +35,7 @@ enum class TokenType {
 	Dot,
 	Double_Equals,
 	Extends,
+	Type,
 	// Built-in keywords
 	BuiltIn,
 	While,

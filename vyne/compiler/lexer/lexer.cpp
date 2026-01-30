@@ -85,7 +85,6 @@ std::vector<Token> tokenize(const std::string& input) {
 
         switch (character) {
             case '+': tokens.emplace_back(TokenType::Add, currentLine, 0, "+"); break;
-            case '-': tokens.emplace_back(TokenType::Substract, currentLine, 0, "-"); break;
             case '*': tokens.emplace_back(TokenType::Multiply, currentLine, 0, "*"); break;
             case '/': tokens.emplace_back(TokenType::Division, currentLine, 0, "/"); break;
             case '(': tokens.emplace_back(TokenType::Left_Parenthese, currentLine, 0, "("); break;
@@ -132,6 +131,16 @@ std::vector<Token> tokenize(const std::string& input) {
             case '|' : {
                 if(i + 1 < input.length() && input[i + 1] == '|'){
                     tokens.emplace_back(TokenType::Or, currentLine, 0, "::");
+                    i++;
+                }
+                break;
+            }
+            case '-' : {
+                if(i + 1 < input.length() && input[i + 1] == '>'){
+                    tokens.emplace_back(TokenType::Type, currentLine, 0, "::");
+                    i++;
+                } else {
+                    tokens.emplace_back(TokenType::Substract, currentLine, 0, "-");
                     i++;
                 }
                 break;
