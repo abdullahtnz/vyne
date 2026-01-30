@@ -69,6 +69,7 @@ std::vector<Token> tokenize(const std::string& input) {
             else if (buffer == "type") tokens.emplace_back(VTokenType::BuiltIn, currentLine, 0, buffer);
             else if (buffer == "string") tokens.emplace_back(VTokenType::BuiltIn, currentLine, 0, buffer);
             else if (buffer == "number") tokens.emplace_back(VTokenType::BuiltIn, currentLine, 0, buffer);
+            else if (buffer == "sequence") tokens.emplace_back(VTokenType::BuiltIn, currentLine, 0, buffer);
             else if (buffer == "group") tokens.emplace_back(VTokenType::Group, currentLine, 0, "");
             else if (buffer == "true") tokens.emplace_back(VTokenType::True, currentLine, 1, "");
             else if (buffer == "false") tokens.emplace_back(VTokenType::False, currentLine, 0, "");

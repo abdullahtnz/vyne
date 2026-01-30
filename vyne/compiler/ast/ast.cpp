@@ -163,6 +163,7 @@ Value BuiltInCallNode::evaluate(SymbolContainer& env, std::string currentGroup) 
             case Value::STRING: return Value("string");
             case Value::ARRAY:  return Value("array");
             case Value::FUNCTION: return Value("function");
+            case Value::MODULE: return Value("module");
             default: return Value("unknown");
         }
     }
@@ -185,6 +186,19 @@ Value BuiltInCallNode::evaluate(SymbolContainer& env, std::string currentGroup) 
         if(argValues.size() != 1) throw std::runtime_error("Argument Error : sizeof() expects 1 arguments, but got " + std::to_string(argValues.size()) + " instead at line " + std::to_string(lineNumber));
 
         return Value(argValues[0].getBytes());
+    }
+
+    if(funcName == "sequence"){
+        std::vector<Value> sequence;
+        double start = argValues[0].asNumber(), end = argValues[1].asNumber();
+
+        if(argValues.size() != 2) throw std::runtime_error("Argument Error : sequence() expects 2 arguments, but got " + std::to_string(argValues.size()) + " instead at line " + std::to_string(lineNumber));
+
+        for(double i = start; i < end; i++){
+            sequence.emplace_back(i);
+        }
+
+        return Value(sequence);
     } 
 
     throw std::runtime_error("Unknown built-in: " + funcName);
