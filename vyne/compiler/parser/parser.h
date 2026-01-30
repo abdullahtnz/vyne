@@ -54,6 +54,6 @@ public:
 	std::unique_ptr<ASTNode>   parseLogicalAnd();
 	std::unique_ptr<ASTNode>   parseEquality();
 	std::unique_ptr<ASTNode>   parseExpression();
-	std::unique_ptr<ASTNode> parseStatement();
+	std::unique_ptr<ASTNode>   parseStatement();
 	std::unique_ptr<BlockNode> parseProgram();
 };
