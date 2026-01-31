@@ -1,3 +1,6 @@
+/* Import Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap");
+
 :root {
   --bg-main: #0d1117;
   --bg-sidebar: #010409;
@@ -5,7 +8,12 @@
   --text-secondary: #8b949e;
   --accent: #58a6ff;
   --border: #30363d;
-  --code-bg: #161b22;
+  --code-bg: #1e1e1e;
+  --sidebar-width: 280px;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -14,15 +22,16 @@ body {
   background: var(--bg-main);
   color: var(--text-primary);
   display: flex;
+  line-height: 1.6;
 }
 
 .sidebar {
-  width: 280px;
+  width: var(--sidebar-width);
   height: 100vh;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border);
   position: fixed;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
   overflow-y: auto;
 }
 
@@ -36,51 +45,138 @@ body {
 .nav-links {
   list-style: none;
   padding: 0;
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
 
 .nav-group {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin: 1.5rem 0 0.5rem 0;
-  font-weight: 600;
+  margin: 1.8rem 0 0.6rem 0;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
 .nav-links a {
   text-decoration: none;
   color: var(--text-primary);
   display: block;
-  padding: 0.5rem 0;
-  font-size: 0.9rem;
+  padding: 0.4rem 0;
+  font-size: 0.95rem;
+  transition: color 0.2s;
 }
 
+.nav-links a:hover {
+  color: var(--accent);
+}
 .nav-links a.active {
   color: var(--accent);
   font-weight: 600;
 }
 
 .content {
-  margin-left: 280px;
-  width: 100%;
-  max-width: 900px;
-  padding: 2rem 4rem;
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  padding: 2rem 5rem;
+  max-width: 1200px;
+}
+
+.content-header {
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-top: 0;
+}
+h2 {
+  font-size: 1.8rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin-top: 3rem;
 }
 
 .warning-box {
-  background: rgba(187, 128, 9, 0.15);
-  border: 1px solid #bb8009;
-  padding: 1rem;
-  border-radius: 6px;
+  background: rgba(187, 128, 9, 0.1);
+  border: 1px solid rgba(187, 128, 9, 0.4);
+  padding: 1.25rem;
+  border-radius: 8px;
   margin: 2rem 0;
   color: #e3b341;
 }
 
-.code-block {
+.vyne-editor {
   background: var(--code-bg);
-  border: 1px solid var(--border);
+  color: #a9b7c6;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  padding: 30px 12px 12px 12px;
   border-radius: 6px;
-  padding: 1rem;
-  margin: 1rem 0;
-  font-family: monospace;
+  border: 1px solid #323232;
+  position: relative;
+  white-space: pre;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  margin: 1.5rem 0;
+  line-height: 0.5;
+}
+
+.vyne-editor::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 11px;
+  height: 11px;
+  background: #ff5f56;
+  border-radius: 50%;
+  box-shadow:
+    22px 0 0 #ffbd2e,
+    44px 0 0 #27c93f;
+}
+
+.vyne-editor::after {
+  content: attr(data-lang);
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #555;
+  font-weight: 700;
+}
+
+.keyword {
+  color: #cc7832;
+  font-weight: bold;
+}
+.func {
+  color: #ffc66d;
+}
+.number {
+  color: #6897bb;
+}
+.string {
+  color: #6a8759;
+}
+.comment {
+  color: #808080;
+  font-style: italic;
+}
+
+.line {
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+.line:hover {
+  background: rgba(255, 255, 255, 0.03);
 }

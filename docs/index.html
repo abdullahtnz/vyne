@@ -6,7 +6,7 @@
     <title>Vyne | Getting Started</title>
     <link rel="stylesheet" href="style.css" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -65,10 +65,15 @@
 
         <h2 id="hello-world">Hello World</h2>
         <p>A simple program in Vyne looks like this:</p>
-        <div class="code-block">
-          <pre><code>function main() {
-    log("Hello, Vyne!");
-}</code></pre>
+
+        <div class="vyne-editor" data-lang="vyne">
+          <div class="line">
+            <span class="keyword">sub</span> <span class="func">main</span>() {
+          </div>
+          <div class="line">
+            log(<span class="string">"Hello, Vyne!"</span>);
+          </div>
+          <div class="line">}</div>
         </div>
 
         <h2 id="postfix">Postfix Operators</h2>
@@ -76,10 +81,20 @@
           Vyne supports <code>++</code> and <code>--</code>. These return the
           original value before the modification.
         </p>
-        <div class="code-block">
-          <pre><code>var x = 10;
-log(x++); // Outputs 10
-log(x);   // Outputs 11</code></pre>
+
+        <div class="vyne-editor" data-lang="vyne">
+          <div class="line">
+            <span class="keyword">sub</span> <span class="func">main</span>() {
+          </div>
+          <div class="line">
+            <span class="keyword">var</span> x = <span class="number">10</span>;
+          </div>
+          <div class="line"></div>
+          <div class="line">x++;</div>
+          <div class="line">
+            log(<span class="string">"Value: "</span> + x);
+          </div>
+          <div class="line">}</div>
         </div>
       </article>
     </main>
