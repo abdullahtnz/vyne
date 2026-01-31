@@ -17,6 +17,8 @@ int disassembleInstruction(const Chunk& chunk, int offset) {
         case OP_DIVIDE:   std::printf("OP_DIVIDE\n");   return offset + 1;
         case OP_RETURN:   std::printf("OP_RETURN\n");   return offset + 1;
         case OP_EQUAL:    std::printf("OP_EQUAL\n");    return offset + 1;
+        case OP_GREATER:  std::printf("OP_GREATER\n");  return offset + 1;
+        case OP_SMALLER:  std::printf("OP_SMALLER\n");  return offset + 1;
         case OP_POP:      std::printf("OP_POP\n");      return offset + 1;
         case OP_PRINT:    std::printf("OP_PRINT\n");    return offset + 1;
         case OP_TYPE:     std::printf("OP_TYPE\n");     return offset + 1;
@@ -53,6 +55,15 @@ int disassembleInstruction(const Chunk& chunk, int offset) {
             uint8_t count = chunk.code[offset + 1];
             std::printf("%-16s %4d\n", "OP_ARRAY", count);
             return offset + 2;
+        }
+        case OP_LOOP: {
+            uint8_t hi = chunk.code[offset + 1];
+            uint8_t lo = chunk.code[offset + 2];
+            uint16_t jumpOffset = (uint16_t)((hi << 8) | lo);
+
+            int target = offset + 3 - jumpOffset;
+            std::printf("%-16s %4d -> %04d\n", "OP_LOOP", offset, target);
+            return offset + 3;
         }
 
         default:

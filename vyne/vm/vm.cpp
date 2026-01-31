@@ -86,6 +86,7 @@ InterpretResult VM::run() {
             }
             case OP_JUMP_IF_FALSE : {
                 uint16_t offset = static_cast<uint16_t>((ip[0] << 8) | ip[1]);
+                ip += 2;
 
                 Value condition = pop();
                 if(!condition.isTruthy()){
@@ -97,6 +98,18 @@ InterpretResult VM::run() {
                 Value b = pop();
                 Value a = pop();
                 push(Value(a == b));
+                break;
+            }
+            case OP_GREATER : {
+                Value b = pop();
+                Value a = pop();
+                push(Value(std::get<double>(a.data) > std::get<double>(b.data)));
+                break;
+            }
+            case OP_SMALLER : {
+                Value b = pop();
+                Value a = pop();
+                push(Value(std::get<double>(a.data) < std::get<double>(b.data)));
                 break;
             }
             case OP_POP : {
@@ -129,6 +142,12 @@ InterpretResult VM::run() {
                 push(Value(arrayElements));
                 break;
             }
+            case OP_LOOP: {
+                uint16_t offset = (uint16_t)((ip[0] << 8) | ip[1]);
+                ip += 2;
+                ip -= offset;
+                break;
+            }
             case OP_RETURN: {
                 Value finalResult;
                 if (!stack.empty()) {
@@ -136,7 +155,7 @@ InterpretResult VM::run() {
                 } else {
                     finalResult = Value();
                 }
-                
+
                 std::cout << "Result: ";
                 finalResult.print(std::cout);
                 std::cout << std::endl;

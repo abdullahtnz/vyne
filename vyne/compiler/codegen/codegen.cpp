@@ -37,6 +37,8 @@ void BinOpNode::compile(Emitter& e) const {
         case VTokenType::Multiply:   e.emitByte(OP_MULTIPLY); break;
         case VTokenType::Division:  e.emitByte(OP_DIVIDE); break;
         case VTokenType::Double_Equals : e.emitByte(OP_EQUAL); break;
+        case VTokenType::Greater : e.emitByte(OP_GREATER); break;
+        case VTokenType::Smaller : e.emitByte(OP_SMALLER); break;
         default: break;
     }
 }
@@ -91,7 +93,19 @@ void IndexAccessNode::compile(Emitter& e) const {}
 void FunctionNode::compile(Emitter& e) const {}
 void FunctionCallNode::compile(Emitter& e) const {}
 void MethodCallNode::compile(Emitter& e) const {}
-void WhileNode::compile(Emitter& e) const {}
+void WhileNode::compile(Emitter& e) const {
+    int loopStart = e.currentChunk->code.size();
+
+    condition->compile(e);
+
+    int exitJump = e.emitJump(OP_JUMP_IF_FALSE);
+
+    body->compile(e);
+
+    e.emitLoop(loopStart);
+
+    e.patchJump(exitJump);
+}
 void BlockNode::compile(Emitter& e) const {
     for (const auto& stmt : statements) {
         if (stmt) stmt->compile(e);
@@ -103,6 +117,7 @@ void IfNode::compile(Emitter& e) const {
     condition->compile(e); 
     int jumpAddress = e.emitJump(OP_JUMP_IF_FALSE);
 
+    e.emitByte(OP_POP);
     if (body) body->compile(e);
 
     e.patchJump(jumpAddress);
