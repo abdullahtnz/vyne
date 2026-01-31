@@ -178,7 +178,7 @@ std::unique_ptr<ASTNode> Parser::parseTerm() {
 
 std::unique_ptr<ASTNode> Parser::parsePostfix() {
     auto left = parseFactor();
-    while (peekToken().type == VTokenType::Double_Increment) {
+    while (peekToken().type == VTokenType::Double_Increment || peekToken().type == VTokenType::Double_Decrement) {
         Token opToken = getNextToken();
         auto node = std::make_unique<PostFixNode>(opToken.type, std::move(left));
         node->lineNumber = opToken.line;

@@ -31,7 +31,8 @@ enum class VTokenType {
     Substract,          // -
     Multiply,           // *
     Division,           // /
-    Double_Increment,    // ++
+    Double_Increment,   // ++
+    Double_Decrement,   // --
 
     // --- OPERATORS: LOGIC & RELATIONAL ---
     And, Or,            // &&, ||

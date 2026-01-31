@@ -162,7 +162,10 @@ Value PostFixNode::evaluate(SymbolContainer& env, std::string currentGroup) cons
     double rawNum = oldValue.asNumber();
     Value newVal;
 
-    if(op == VTokenType::Double_Increment) newVal = Value(rawNum + 1);
+    switch(op){
+        case VTokenType::Double_Increment : return newVal = Value(rawNum + 1); break;
+        case VTokenType::Double_Decrement : return newVal = Value(rawNum - 1); break;
+    }
 
     env[currentGroup][varNode->getNameId()] = newVal;
 

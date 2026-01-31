@@ -166,6 +166,9 @@ std::vector<Token> tokenize(const std::string& input) {
                 if(i + 1 < input.length() && input[i + 1] == '>'){
                     tokens.emplace_back(VTokenType::Type, currentLine, 0, "->");
                     i++;
+                } else if(i + 1 < input.length() && input[i + 1] == '-'){
+                    tokens.emplace_back(VTokenType::Double_Decrement, currentLine, 0, "--");
+                    i++;
                 } else {
                     tokens.emplace_back(VTokenType::Substract, currentLine, 0, "-");
                     i++;
