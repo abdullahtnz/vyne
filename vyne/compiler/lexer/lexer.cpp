@@ -71,7 +71,6 @@ std::vector<Token> tokenize(const std::string& input) {
                 buffer += input[i++];
             }
 
-            // parsing keywords
             if (buffer == "log") tokens.emplace_back(VTokenType::BuiltIn, currentLine, 0, buffer);
             else if (buffer == "sizeof") tokens.emplace_back(VTokenType::BuiltIn, currentLine, 0, buffer);
             else if (buffer == "type") tokens.emplace_back(VTokenType::BuiltIn, currentLine, 0, buffer);
