@@ -45,7 +45,7 @@ Value VariableNode::evaluate(SymbolContainer& env, std::string currentGroup) con
         }
     }
 
-    throw std::runtime_error("Runtime Error: Variable '" + originalName + "' not found.");
+    throw std::runtime_error("Runtime Error: Variable '" + originalName + "' not found [ line " + std::to_string(lineNumber) + " ]");
 }
 
 /**
@@ -63,13 +63,13 @@ Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) c
     if (indexExpr) {
         auto it = table.find(identifierId);
         if (it == table.end()) {
-            throw std::runtime_error("Runtime Error: Array '" + originalName + "' not found.");
+            throw std::runtime_error("Runtime Error: Array '" + originalName + "' not found [ line " + std::to_string(lineNumber) + " ]");
         }
 
         Value& arrayVal = it->second; 
         
         if (arrayVal.getType() != Value::ARRAY) {
-            throw std::runtime_error("Runtime Error: Cannot index into non-array '" + originalName + "'");
+            throw std::runtime_error("Runtime Error: Cannot index into non-array '" + originalName + "' [ line " + std::to_string(lineNumber) + " ]");
         }
 
         Value idxValue = indexExpr->evaluate(env, currentGroup);
@@ -79,7 +79,7 @@ Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         if (idx < vec.size()) {
             vec[idx] = val;
         } else {
-            throw std::runtime_error("Runtime Error: Index out of bounds.");
+            throw std::runtime_error("Runtime Error: Index out of bounds [ line " + std::to_string(lineNumber) + " ]");
         }
         
         return val;
@@ -87,7 +87,7 @@ Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 
     auto it = table.find(identifierId);
     if (it != table.end() && it->second.isReadOnly) {
-        throw std::runtime_error("Runtime Error: Cannot reassign read-only '" + originalName + "'");
+        throw std::runtime_error("Runtime Error: Cannot reassign read-only '" + originalName + "' [ line " + std::to_string(lineNumber) + " ]");
     }
 
     table[identifierId] = val; 
@@ -137,7 +137,7 @@ Value BinOpNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
             case VTokenType::Substract: return Value(l.asNumber() - r.asNumber());
             case VTokenType::Multiply: return Value(l.asNumber() * r.asNumber());
             case VTokenType::Division:
-                if (r.asNumber() == 0) throw std::runtime_error("Division by zero!");
+                if (r.asNumber() == 0) throw std::runtime_error("Division by zero! [ line " + std::to_string(lineNumber) + " ]");
                 return Value(l.asNumber() / r.asNumber());
             case VTokenType::Smaller: return Value(l.asNumber() < r.asNumber());
             case VTokenType::Smaller_Or_Equal: return Value(l.asNumber() <= r.asNumber());
@@ -146,14 +146,14 @@ Value BinOpNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
             case VTokenType::Double_Equals: return Value(l == r);
             case VTokenType::Floor_Divide: {
                 if (r.asNumber() == 0) {
-                    throw std::runtime_error("Division by zero in floor division (//)");
+                    throw std::runtime_error("Division by zero in floor division (//) [ line " + std::to_string(lineNumber) + " ]");
                 }
 
                 return Value(std::floor(l.asNumber() / r.asNumber()));
             }
             case VTokenType::Modulo : {
                 if (r.asNumber() == 0) {
-                    throw std::runtime_error("Runtime Error: Modulo by zero is undefined.");
+                    throw std::runtime_error("Runtime Error: Modulo by zero is undefined [ line " + std::to_string(lineNumber) + " ]");
                 }
 
                 return Value(std::fmod(l.asNumber(), r.asNumber()));
@@ -162,12 +162,12 @@ Value BinOpNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
         }
     }
 
-    throw std::runtime_error("Type Error: Invalid operation '" + VTokenTypeToString(op) + "' between " + l.getTypeName() + " and " + r.getTypeName() + " at line " + std::to_string(lineNumber));
+    throw std::runtime_error("Type Error: Invalid operation '" + VTokenTypeToString(op) + "' between " + l.getTypeName() + " and " + r.getTypeName() + " [ line " + std::to_string(lineNumber) + " ]");
 }
 
 Value PostFixNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     if (left->type() != NodeType::VARIABLE) {
-        throw std::runtime_error("Type Error: Cannot increment a non-variable.");
+        throw std::runtime_error("Type Error: Cannot increment a non-variable [ line " + std::to_string(lineNumber) + " ]");
     }
 
     auto* varNode = static_cast<VariableNode*>(left.get());
@@ -217,21 +217,21 @@ Value BuiltInCallNode::evaluate(SymbolContainer& env, std::string currentGroup) 
     }
 
     if(funcName == "string"){
-        if(argValues.size() != 1) throw std::runtime_error("Argument Error : string() expects 1 arguments, but got " + std::to_string(argValues.size()) + " instead at line " + std::to_string(lineNumber));
+        if(argValues.size() != 1) throw std::runtime_error("Argument Error : string() expects 1 arguments, but got " + std::to_string(argValues.size()) + " instead [ line " + std::to_string(lineNumber) + " ]");
         if(argValues[0].getType() != Value::NUMBER) throw std::runtime_error("Argument Error : string() only takes Number type as argument [ line " + std::to_string(lineNumber) + " ]");
 
         return Value(argValues[0].toString());
     } 
 
     if(funcName == "number"){
-        if(argValues.size() != 1) throw std::runtime_error("Argument Error : number() expects 1 arguments, but got " + std::to_string(argValues.size()) + " instead at line " + std::to_string(lineNumber));
+        if(argValues.size() != 1) throw std::runtime_error("Argument Error : number() expects 1 arguments, but got " + std::to_string(argValues.size()) + " instead [ line " + std::to_string(lineNumber) + " ]");
         if(argValues[0].getType() != Value::STRING) throw std::runtime_error("Argument Error : number() only takes String type as argument [ line " + std::to_string(lineNumber) + " ]");
 
         return Value(argValues[0].toNumber());
     } 
 
     if(funcName == "sizeof"){
-        if(argValues.size() != 1) throw std::runtime_error("Argument Error : sizeof() expects 1 arguments, but got " + std::to_string(argValues.size()) + " instead at line " + std::to_string(lineNumber));
+        if(argValues.size() != 1) throw std::runtime_error("Argument Error : sizeof() expects 1 arguments, but got " + std::to_string(argValues.size()) + " instead [ line " + std::to_string(lineNumber) + " ]");
 
         return Value(argValues[0].getShallowBytes());
     }
@@ -240,7 +240,7 @@ Value BuiltInCallNode::evaluate(SymbolContainer& env, std::string currentGroup) 
         std::vector<Value> sequence;
         double start = argValues[0].asNumber(), end = argValues[1].asNumber();
 
-        if(argValues.size() != 2) throw std::runtime_error("Argument Error : sequence() expects 2 arguments, but got " + std::to_string(argValues.size()) + " instead at line " + std::to_string(lineNumber));
+        if(argValues.size() != 2) throw std::runtime_error("Argument Error : sequence() expects 2 arguments, but got " + std::to_string(argValues.size()) + " instead [ line " + std::to_string(lineNumber) + " ]");
 
         for(double i = start; i < end; i++){
             sequence.emplace_back(i);
@@ -249,7 +249,7 @@ Value BuiltInCallNode::evaluate(SymbolContainer& env, std::string currentGroup) 
         return Value(sequence);
     } 
 
-    throw std::runtime_error("Unknown built-in: " + funcName);
+    throw std::runtime_error("Unknown built-in: " + funcName + " [ line " + std::to_string(lineNumber) + " ]");
 }
 
 Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
@@ -267,7 +267,7 @@ Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) 
         return arrayVal.asList().at(static_cast<size_t>(idxVal.asNumber()));
     }
 
-    throw std::runtime_error("Runtime Error: Array '" + originalName + "' not found.");
+    throw std::runtime_error("Runtime Error: Array '" + originalName + "' not found [ line " + std::to_string(lineNumber) + " ]");
 }
 
 Value FunctionNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
@@ -284,13 +284,13 @@ Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup)
     auto it = env["global"].find(funcNameId);
     
     if (it == env["global"].end()) {
-        throw std::runtime_error("Runtime Error: " + originalName + " is not defined in global scope.");
+        throw std::runtime_error("Runtime Error: " + originalName + " is not defined in global scope [ line " + std::to_string(lineNumber) + " ]");
     }
 
     Value funcVal = it->second;
 
     if (funcVal.getType() != Value::FUNCTION) {
-        throw std::runtime_error("Type Error: " + originalName + " is not a function.");
+        throw std::runtime_error("Type Error: " + originalName + " is not a function [ line " + std::to_string(lineNumber) + " ]");
     }
 
     std::vector<Value> evaluatedArgs;
@@ -305,7 +305,7 @@ Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup)
     auto& params = funcVal.asFunction()->params;
 
     if (params.size() != evaluatedArgs.size()) {
-        throw std::runtime_error("Argument Error: Argument count mismatch on function call " + originalName);
+        throw std::runtime_error("Argument Error: Argument count mismatch on function call " + originalName + " [ line " + std::to_string(lineNumber) + " ]");
     }
     
     for (size_t i = 0; i < params.size(); ++i) {
@@ -386,13 +386,13 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
                 return result;
             }
         }
-        throw std::runtime_error("Module Error: Method '" + methodName + "' not found in module " + modName);
+        throw std::runtime_error("Module Error: Method '" + methodName + "' not found in module " + modName + " [ line " + std::to_string(lineNumber) + " ]");
     }
 
     // --- ARRAY METHODS ---
     if (receiverVal.getType() == Value::ARRAY) {
         if (receiver->type() != NodeType::VARIABLE) {
-            throw std::runtime_error("Runtime Error: Cannot call methods on anonymous arrays at line " + std::to_string(lineNumber));
+            throw std::runtime_error("Runtime Error: Cannot call methods on anonymous arrays [ line " + std::to_string(lineNumber) + " ]");
         }
 
         auto* var = static_cast<VariableNode*>(receiver.get());
@@ -407,7 +407,7 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if (!target) {
-            throw std::runtime_error("Runtime Error: Variable '" + var->getOriginalName() + "' not found.");
+            throw std::runtime_error("Runtime Error: Variable '" + var->getOriginalName() + "' not found [ line " + std::to_string(lineNumber) + " ]");
         }
 
         if (methodName == "size") {
@@ -415,12 +415,12 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if (methodName == "size") {
-            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array at line " + std::to_string(lineNumber));
+            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method size() on non-array [ line " + std::to_string(lineNumber) + " ]");
             return Value(static_cast<double>(target->asList().size()));
         }
 
         if (methodName == "push") {
-            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array at line " + std::to_string(lineNumber));
+            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method push() on non-array [ line " + std::to_string(lineNumber) + " ]");
 
             for(auto& arg : arguments){
                 Value val = arg->evaluate(env, currentGroup);
@@ -431,30 +431,30 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if (methodName == "pop") {
-            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method pop() on non-array at line " + std::to_string(lineNumber));
-            if (target->asList().empty()) throw std::runtime_error("Index Error: pop() from empty array at line " + std::to_string(lineNumber));
-            if (!arguments.empty()) throw std::runtime_error("Argument Error: pop() expects 0 arguments, but got " + std::to_string(arguments.size()) + " at line " + std::to_string(lineNumber));
+            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method pop() on non-array [ line " + std::to_string(lineNumber) + " ]");
+            if (target->asList().empty()) throw std::runtime_error("Index Error: pop() from empty array [ line " + std::to_string(lineNumber) + " ]");
+            if (!arguments.empty()) throw std::runtime_error("Argument Error: pop() expects 0 arguments, but got " + std::to_string(arguments.size()) + " [ line " + std::to_string(lineNumber) + " ]");
 
             target->asList().pop_back();
             return Value(true);
         }
 
         if (methodName == "delete") {
-            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method delete() on non-array at line " + std::to_string(lineNumber));
-            if (arguments.size() != 1) throw std::runtime_error("Argument Error: delete() expects exactly 1 argument, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
+            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error : Called method delete() on non-array [ line " + std::to_string(lineNumber) + " ]");
+            if (arguments.size() != 1) throw std::runtime_error("Argument Error: delete() expects exactly 1 argument, but got " + std::to_string(arguments.size()) + " instead [ line " + std::to_string(lineNumber) + " ]");
 
             Value val = arguments[0]->evaluate(env, currentGroup);
             auto it = std::find(target->asList().begin(), target->asList().end(), val);
-            if (it == std::end(target->asList())) throw std::runtime_error("Value error : Could not find given value in array!");
+            if (it == std::end(target->asList())) throw std::runtime_error("Value error : Could not find given value in array! [ line " + std::to_string(lineNumber) + " ]");
             target->asList().erase(it);
             return Value(true);
         }
 
         if (methodName == "sort") {
-            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error: sort() called on non-array at line " + std::to_string(lineNumber));
-            if (!arguments.empty()) throw std::runtime_error("Argument Error: sort() expects 0 arguments.");
+            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error: sort() called on non-array [ line " + std::to_string(lineNumber) + " ]");
+            if (!arguments.empty()) throw std::runtime_error("Argument Error: sort() expects 0 arguments [ line " + std::to_string(lineNumber) + " ]");
             for (auto& el : target->asList()) {
-                if (el.getType() != Value::NUMBER) throw std::runtime_error("Value Error: Cannot sort string values at line " + std::to_string(lineNumber));
+                if (el.getType() != Value::NUMBER) throw std::runtime_error("Value Error: Cannot sort string values [ line " + std::to_string(lineNumber) + " ]");
             }
             std::sort(target->asList().begin(), target->asList().end());
             return Value(*target); 
@@ -462,7 +462,7 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
 
         if (methodName == "place_all") {
             if (target->getType() != Value::ARRAY) 
-                throw std::runtime_error("Type Error: place_all() called on non-array");
+                throw std::runtime_error("Type Error: place_all() called on non-array [ line " + std::to_string(lineNumber) + " ]");
 
             Value element = arguments[0]->evaluate(env, currentGroup);
             Value countVal = arguments[1]->evaluate(env, currentGroup);
@@ -481,21 +481,21 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
         }
 
         if (methodName == "reverse") {
-            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error: reverse() called on non-array at line " + std::to_string(lineNumber));
-            if (arguments.size() > 0) throw std::runtime_error("Argument Error: reverse() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
+            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error: reverse() called on non-array [ line " + std::to_string(lineNumber) + " ]");
+            if (arguments.size() > 0) throw std::runtime_error("Argument Error: reverse() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead [ line " + std::to_string(lineNumber) + " ]");
             std::reverse(target->asList().begin(), target->asList().end());
             return Value(*target);
         }
 
         if (methodName == "clear") {
-            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error: clear() called on non-array at line " + std::to_string(lineNumber));
-            if (arguments.size() > 0) throw std::runtime_error("Argument Error: clear() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead at line " + std::to_string(lineNumber));
+            if (target->getType() != Value::ARRAY) throw std::runtime_error("Type Error: clear() called on non-array [ line " + std::to_string(lineNumber) + " ]");
+            if (arguments.size() > 0) throw std::runtime_error("Argument Error: clear() expects 0 arguments, but got " + std::to_string(arguments.size()) + " instead [ line " + std::to_string(lineNumber) + " ]");
             target->asList().clear();
             return Value(*target);
         }
     }
     
-    throw std::runtime_error("Unknown method: " + methodName);
+    throw std::runtime_error("Unknown method: " + methodName + " [ line " + std::to_string(lineNumber) + " ]");
 }
 
 /**
@@ -503,8 +503,7 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
  * * This implementation supports:
  * - @b Break: Caught via BreakException to exit the loop.
  * - @b Continue: Caught via ContinueException to skip to the next iteration.
- * * 
- */
+ * * */
 
 Value WhileNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value lastResult;
@@ -520,7 +519,7 @@ Value WhileNode::evaluate(SymbolContainer& env, std::string currentGroup) const 
 Value ForNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value collection = iterable->evaluate(env, currentGroup);
     if (collection.getType() != Value::ARRAY) {
-        throw std::runtime_error("Runtime Error: 'through' requires a sequence or range");
+        throw std::runtime_error("Runtime Error: 'through' requires a sequence or range [ line " + std::to_string(lineNumber) + " ]");
     }
 
     const auto& elements = collection.asList();
@@ -573,10 +572,10 @@ Value IfNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     try{
         if(condition->evaluate(env, currentGroup).isTruthy()){
             return body->evaluate(env, currentGroup);
-        } else {
+        } else if (elseBody) {
             return elseBody->evaluate(env, currentGroup);
         }
-    } catch (BreakException& breakException){
+    } catch (const BreakException& breakException){
         throw;
     }
     return Value();
@@ -631,7 +630,7 @@ Value DismissNode::evaluate(SymbolContainer& env, std::string currentGroup) cons
 
     if (erasedSomething) return Value();
 
-    throw std::runtime_error("Module Error: Could not dismiss '" + originalName + "' at line " + std::to_string(lineNumber));
+    throw std::runtime_error("Module Error: Could not dismiss '" + originalName + "' [ line " + std::to_string(lineNumber) + " ]");
 }
 
 std::string resolvePath(std::vector<std::string> scope, std::string currentGroup) {
