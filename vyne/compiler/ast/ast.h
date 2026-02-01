@@ -105,7 +105,7 @@ public:
 class NumberNode : public ASTNode {
     double value;
 public:
-    NumberNode(double val) : ASTNode(NodeType::GROUP), value(val) {}
+    NumberNode(double val) : ASTNode(NodeType::NUMBER), value(val) {}
     Value evaluate(SymbolContainer& env, std::string currentGroup = "global") const override;
     void compile(Emitter& e) const override;
 };
@@ -371,8 +371,10 @@ class IfNode : public ASTNode {
 public:
     std::unique_ptr<ASTNode> condition;
     std::unique_ptr<ASTNode> body;
+    std::unique_ptr<ASTNode> elseBody;
 
-    IfNode(std::unique_ptr<ASTNode> c, std::unique_ptr<ASTNode> b) : ASTNode(NodeType::IF), condition(std::move(c)), body(std::move(b)) {}
+    IfNode(std::unique_ptr<ASTNode> c, std::unique_ptr<ASTNode> b, std::unique_ptr<ASTNode> eb = nullptr) : 
+    ASTNode(NodeType::IF), condition(std::move(c)), body(std::move(b)), elseBody(std::move(eb)) {}
 
     Value evaluate(SymbolContainer& env, std::string currentGroup) const override;
     void compile(Emitter& e) const override;

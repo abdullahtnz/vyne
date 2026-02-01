@@ -21,6 +21,7 @@ enum class VTokenType {
 
     // --- KEYWORDS: CONTROL FLOW ---
     If,
+    Else,
     While,
     Through,
     LoopMode,

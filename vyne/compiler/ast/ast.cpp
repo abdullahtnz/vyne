@@ -573,6 +573,8 @@ Value IfNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     try{
         if(condition->evaluate(env, currentGroup).isTruthy()){
             return body->evaluate(env, currentGroup);
+        } else {
+            return elseBody->evaluate(env, currentGroup);
         }
     } catch (BreakException& breakException){
         throw;

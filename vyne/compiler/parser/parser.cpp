@@ -447,7 +447,15 @@ std::unique_ptr<ASTNode> Parser::parseIfStatement() {
     auto condition = parseExpression();
     
     auto body = parseStatement();
-    auto node = std::make_unique<IfNode>(std::move(condition), std::move(body));
+
+    std::unique_ptr<ASTNode> elseBody = nullptr;
+    
+    if (peekToken().type == VTokenType::Else) {
+        consume(VTokenType::Else);
+        elseBody = parseStatement();
+    }
+
+    auto node = std::make_unique<IfNode>(std::move(condition), std::move(body), std::move(elseBody));
     node->lineNumber = line;
     return node;
 }
