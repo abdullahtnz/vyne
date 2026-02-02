@@ -77,6 +77,7 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         case VTokenType::Dismiss:    return parseDismissStatement();
         case VTokenType::Identifier: {
             int checkPos = 1;
+            
             while(lookAhead(checkPos).type == VTokenType::Dot || 
                 lookAhead(checkPos).type == VTokenType::Left_Bracket) {
                 
@@ -91,6 +92,10 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
                 } else {
                     checkPos += 2;
                 }
+            }
+
+            if (lookAhead(checkPos).type == VTokenType::Extends) {
+                checkPos += 2;
             }
             
             if(lookAhead(checkPos).type == VTokenType::Equals) {
@@ -370,6 +375,15 @@ std::unique_ptr<ASTNode> Parser::parseIdentifierExpr() {
 
     std::string lastName = tok.name;
     uint32_t currentId = StringPool::instance().intern(lastName);
+
+    VType explicitType = VType::Unknown;
+    if (peekToken().type == VTokenType::Extends) {
+        consume(VTokenType::Extends);
+        Token typeTok = consume(VTokenType::Identifier);
+        explicitType = stringToVType(typeTok.name);
+        
+        defineSymbol(currentId, explicitType, true);
+    }
     std::vector<std::string> scope;
     std::unique_ptr<ASTNode> node;
 
