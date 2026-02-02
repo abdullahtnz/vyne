@@ -1,12 +1,9 @@
-x = 6;
+x = 5;
+y = 6;
+z = 7;
 
-y = 0;
-through 1..100000 -> loop {
-    y++;
-};
-
-if x == 5 {
-    log("Hey");
-} else {
-    log(":(");
+if x == y {
+    log(z);
+} else if x == 5 {
+    log(x);
 }
