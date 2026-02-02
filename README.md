@@ -85,7 +85,7 @@ doxygen Doxyfile
 ```
 
 Once the process finishes, open the following file in your browser:
-`docs/html/index.html`
+`vyne-docs/html/index.html`
 
 ### 🔍 Navigating the Engine
 
