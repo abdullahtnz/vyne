@@ -207,28 +207,28 @@ log("Hello World!")
                 Copy Code
               </button>
             </div>
-            <pre><code>// Type inference (recommended)
-name := "Alice"               // string
-age := 30                     // int
-height := 5.8                 // float
-isStudent := true             // bool
+            <pre><code># Explicit type declaration (recommended)
+name      :: String  = "Alice";      // string
+age       :: Number  = 30;           // int
+height    :: Number  = 5.8;          // float
+isStudent :: Boolean = true          // bool
 
-// Explicit type declaration
-var score: int = 95
-var temperature: float = 72.5
-var message: string = "Hello"
+# Type inference
+score       = 95;
+temperature = 72.5;
+message     = "Hello";
 
 // Constants
-const PI := 3.14159
-const APP_NAME := "MyApp"
+const PI = 3.14159;
+const APP_NAME = "MyApp";
 
 // Multiple assignment
 x, y := 10, 20
 a, b, c := "foo", 42, false
 
 // Type annotations for function parameters
-func add(a: int, b: int) -> int {
-    return a + b
+sub add(a, b) {
+    return a + b;
 }</code></pre>
           </div>
 
