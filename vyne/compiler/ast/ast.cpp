@@ -57,6 +57,11 @@ Value VariableNode::evaluate(SymbolContainer& env, std::string currentGroup) con
 
 Value AssignmentNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value val = rhs->evaluate(env, currentGroup);
+
+    if (isConstant) {
+        val.setReadOnly();
+    }
+
     std::string targetGroup = resolvePath(scopePath, currentGroup);
     auto& table = env[targetGroup];
 
@@ -268,7 +273,7 @@ Value IndexAccessNode::evaluate(SymbolContainer& env, std::string currentGroup) 
     }
 
     throw std::runtime_error("Runtime Error: Array '" + originalName + "' not found [ line " + std::to_string(lineNumber) + " ]");
-}
+}   
 
 Value FunctionNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     Value funcValue(parameterIds, body);
