@@ -1,4 +1,3 @@
-
 // Mobile menu toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
@@ -171,4 +170,4 @@
         document.addEventListener('DOMContentLoaded', highlightCodeBlocks);
         
         // Add active class to current section on page load
-        updateActiveNavLink();
+        updateActiveNavLink();      
