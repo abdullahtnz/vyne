@@ -40,11 +40,11 @@ Vyne leverages native C++ modules to handle high-performance tasks that the inte
 #### Global Functions
 
 ```bash
-log(x)    # Print to terminal
-type(x)   # Returns "number", "string", "array", or "function"
-sizeof(x) # Get length of strings or count of array elements
-string(x) # Convert any data type to string
-number(x) # Convert any data type to number
+log(x)         # Print to terminal
+type(x)        # Returns "number", "string", "array", or "function"
+sizeof(x)      # Get length of strings or count of array elements
+string(x)      # Convert any data type to string
+number(x)      # Convert any data type to number
 sequence(x, y) # Generates a sequence ( array ) in given range of numbers
 ```
 
