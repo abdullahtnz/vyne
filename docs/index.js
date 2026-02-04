@@ -125,12 +125,12 @@
             const textToCopy = codeElement.textContent;
             
             navigator.clipboard.writeText(textToCopy).then(() => {
-                const originalText = button.textContent;
+                const originalText = button.innerHTML;
                 button.textContent = 'Copied!';
                 button.style.backgroundColor = 'var(--success-color)';
-                
+                console.log(originalText)
                 setTimeout(() => {
-                    button.textContent = originalText;
+                    button.innerHTML = originalText;
                     button.style.backgroundColor = '';
                 }, 2000);
             });
@@ -170,4 +170,6 @@
         document.addEventListener('DOMContentLoaded', highlightCodeBlocks);
         
         // Add active class to current section on page load
-        updateActiveNavLink();      
+        updateActiveNavLink();
+
+

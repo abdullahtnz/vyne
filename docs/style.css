@@ -582,4 +582,4 @@ tr:hover {
 .code-header{
   display: grid;
   grid-template-columns: 1fr 70fr;
-  gap: 10px;
+  gap: 10px}
