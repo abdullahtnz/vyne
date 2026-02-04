@@ -421,14 +421,23 @@ Value MethodCallNode::evaluate(SymbolContainer& env, std::string currentGroup) c
                     return func->nativeFn(argValues); 
                 } 
 
+                const std::string& localCallScope = modPath + ".call_" + std::to_string(rand());
+
                 for (size_t i = 0; i < func->params.size() && i < argValues.size(); ++i) {
-                    env[modPath][func->params[i]] = argValues[i];
+                    env[localCallScope][func->params[i]] = std::move(argValues[i]);
                 }
 
                 Value result(0.0); 
-                for (auto& stmt : func->body) {
-                    result = stmt->evaluate(env, modPath);
+                try {
+                    for (auto& stmt : func->body) {
+                        result = stmt->evaluate(env, localCallScope);
+                    }
+                } catch (const ReturnException& e) {
+                    result = e.value;
                 }
+
+                env.erase(localCallScope);
+
                 return result;
             }
         }
