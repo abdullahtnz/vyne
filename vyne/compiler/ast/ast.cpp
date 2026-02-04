@@ -364,7 +364,10 @@ Value FunctionCallNode::evaluate(SymbolContainer& env, std::string currentGroup)
         result = e.value; 
     }
 
-    env.erase(localScope);
+    if (env.find(localScope) != env.end()) {
+        env[localScope].clear();
+        env.erase(localScope);
+    }
 
     return result;
 }
