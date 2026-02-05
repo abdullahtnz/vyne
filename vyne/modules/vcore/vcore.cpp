@@ -51,10 +51,10 @@ namespace VCoreNative {
     }
 
     Value platform(std::vector<Value>& args) {
-        #ifdef _WIN32
-            return Value("Windows 32-bit");
-        #elif _WIN64
+        #if defined(_WIN64)
             return Value("Windows 64-bit");
+        #elif defined(_WIN32)
+            return Value("Windows 32-bit");
         #elif __APPLE__ || __MACH__
             return Value("Mac OSX");
         #elif __linux__
