@@ -208,9 +208,9 @@ li {
 }
 
 .header {
-  display: flex;
-  justify-content: start;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 80fr 2fr ;
+  gap: 10px;
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border-color);
@@ -501,6 +501,7 @@ tr:hover {
   border-radius: var(--radius-sm);
   cursor: pointer;
   border: 1px solid var(--border-color);
+  justify-self: end;
 }
 
 .theme-toggle i {
@@ -569,7 +570,7 @@ tr:hover {
 
   .header {
   display: grid;
-  grid-template-columns: 1fr 70fr;
+  grid-template-columns: 70fr 10fr;
   gap: 10px;
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
@@ -593,4 +594,5 @@ tr:hover {
 .code-header{
   display: grid;
   grid-template-columns: 1fr 70fr;
-  gap: 10px}
+  gap: 10px
+}
