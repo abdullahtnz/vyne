@@ -17,7 +17,7 @@
             <div class="sidebar-header">
                 <div class="logo">
                     <img src="assets/sidebarVyneLogo.png" alt="" width="80" height="80" style="margin-bottom: 5px;" id="vyneLogo">
-                    <h2>Vyne</h2>
+                    <h2><span style="color: #40BFA9;">Vyn</span><span style="color: #A0D54D;">e</span></h2>
                 </div>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
@@ -31,7 +31,7 @@
                     <ul class="nav-links">
                         <li><a href="#introduction" class="active">Introduction</a></li>
                         <li><a href="#installation">Installation</a></li>
-                        <li><a href="#syntax-basics">Syntax Basics</a></li>
+                        <li><a href="#project-structure">Project structure</a></li>
                     </ul>
                 </div>
                 
@@ -66,17 +66,13 @@
                 </div>
             </nav>
             
-            <div class="theme-toggle" id="themeToggle">
-                <i class="fas fa-sun"></i>
-                <span>Light Mode</span>
-            </div>
                 <div style="margin-top: 10px;">
-                    <a href="#" class="btn btn-outline">
+                    <a href="https://github.com/tuncaygafarli/vyne" class="btn btn-outline">
                         <i class="fab fa-github"></i> GitHub
                     </a>
                 </div>
                 
-                <div style="margin-top: 10px;"><a href="#" class="btn btn-primary">
+                <div style="margin-top: 10px;"><a href="https://github.com/tuncaygafarli/vyne" class="btn btn-primary">
                         <i class="fas fa-download"></i> Download
                 </a></div>
                     
@@ -91,10 +87,14 @@
                         <i class="fas fa-bars"></i>
                     </button>
                 </div>
+                <div class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-sun"></i>
+                </div>
                 <div class="header-title">
                     <h1>Vyne Documentation</h1>
                     <div class="header-subtitle">Version 1.5.2 | Last updated: June 2023</div>
                 </div>
+                
             </header>
             
             <!-- Documentation Content -->
@@ -162,23 +162,77 @@ cd vyne
                         </code></pre>
                 </div>
             </section>
+
+            <!--Project Structure-->
+            <section id="project-structure">
+                <h2>Project Structure</h2>
+                <p>Here is the breakdown of project structure.</p>
+                <div class="code">
+                    <div class="code-header">
+                        <div class="code-title">bash</div>
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <i class="fa-regular fa-clipboard"></i>
+                            <span>Copy</span></button>
+                    </div>
+                <pre><code>
+vyne/
+    compiler/
+                //The Lexer and Parser that turn source code into an AST.
+    core/
+                //The main execution engine and the Value system.
+    modules/    
+                //Native C++ extensions that provide high-performance features to the language.
+                        </code></pre>
+                </div>
+            </section>
+
+            <!--Built-in Modules-->
+            <section id="builtin-modules">
+                <h2>Built-in Modules</h2>
+                <p>Vyne leverages native C++ modules to handle high-performance tasks that the interpreter shouldn't do alone.</p>
+                <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Explanation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>vcore</code></td>
+                <td> System-level utilities, sleep timers, and process management.</td>
+            </tr>
+            <tr>
+                <td><code>vglib</code></td>
+                <td>The "Vyne Graphics Library" — home to the 3D ASCII donut and buffer management (in the future).</td>
+            </tr>
+            <tr>
+                <td><code>vmem</code></td>
+                <td>Memory management and introspection — track heap usage, inspect raw memory addresses, and monitor variable footprints.
+</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+            </section>
             
             
             
             <!-- Page Navigation -->
             <div class="page-nav">
                 <a href="#introduction" class="btn btn-outline">
-                    <i class="fas fa-arrow-left"></i> Previous: Introduction
+                    <i class="fa-solid fa-flag-checkered"></i> Back to start
                 </a>
                 <a href="#" class="btn btn-outline">
-                    Next: Modules & Packages <i class="fas fa-arrow-right"></i>
+                    Next: Core Concepts <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             
             <!-- Footer -->
             <footer class="footer">
-                <p>CodeFlow Documentation &copy; 2023. All rights reserved.</p>
-                <p>Found an issue? <a href="#">Edit this page on GitHub</a> or <a href="https://github.com/tuncaygafarli/vyne/issues">report a problem</a>.</p>
+                <p>Vyne Documentation &copy; 2025. All rights reserved.</p>
+                <p>Found an issue? <a href="https://github.com/tuncaygafarli/vyne/issues">Edit this page on GitHub</a> or <a href="https://github.com/tuncaygafarli/vyne/issues">report a problem</a>.</p>
             </footer>
         </main>
     </div>
