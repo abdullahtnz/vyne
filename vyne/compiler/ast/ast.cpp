@@ -601,6 +601,7 @@ Value ForNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     if (hadIt) savedIt = scope[itId];
 
     std::vector<Value> resultList;
+    std::set<Value> seen;
     Value lastVal;
 
     for (const auto& element : elements) {
@@ -619,6 +620,13 @@ Value ForNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
                 case ForMode::LOOP: 
                     lastVal = currentResult;
                     break;
+                case ForMode::UNIQUE : {
+                    if(seen.find(element) == seen.end()){
+                        seen.insert(element);
+                        resultList.emplace_back(element);
+                    }
+                    break;
+                }
                 case ForMode::EVERY:
                 default:
                     lastVal = currentResult;
@@ -632,7 +640,7 @@ Value ForNode::evaluate(SymbolContainer& env, std::string currentGroup) const {
     if (hadIt) scope[itId] = savedIt;
     else scope.erase(itId);
 
-    if (mode == ForMode::COLLECT || mode == ForMode::FILTER) {
+    if (mode == ForMode::COLLECT || mode == ForMode::FILTER || mode == ForMode::UNIQUE) {
         return Value(resultList);
     }
     return lastVal;

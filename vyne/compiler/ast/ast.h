@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <stdexcept>
 #include <variant>
@@ -357,7 +358,7 @@ public:
 };
 
 class ForNode : public ASTNode {
-    enum class ForMode { LOOP, COLLECT, FILTER, EVERY };
+    enum class ForMode { LOOP, COLLECT, FILTER, EVERY, UNIQUE };
     std::unique_ptr<ASTNode> iterable;
     std::unique_ptr<ASTNode> body;
     std::string iteratorName;
@@ -374,6 +375,7 @@ public:
         if (modeStr == "collect") return ForNode::ForMode::COLLECT;
         else if (modeStr == "filter") return ForNode::ForMode::FILTER;
         else if (modeStr == "every") return ForNode::ForMode::EVERY;
+        else if (modeStr == "unique") return ForNode::ForMode::UNIQUE;
         else return ForNode::ForMode::LOOP;
     }
 };
