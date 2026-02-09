@@ -4,9 +4,6 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
-#include <windows.h>
-#include <psapi.h>
-#include <iostream>
 
 #include "../vyne/compiler/lexer/lexer.h"
 #include "../vyne/compiler/parser/parser.h"
